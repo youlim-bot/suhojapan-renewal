@@ -183,7 +183,9 @@ body:has(button:hover) #cursor { width: 20px; height: 20px; background: var(--cy
 }
 .nav-logo svg { width: 36px; height: 36px; }
 .nav-logo-img {
-  width: 36px; height: 36px;
+  width: 36px;
+  height: auto;
+  aspect-ratio: 1 / 1;
   object-fit: contain;
   border-radius: 50%;
   flex-shrink: 0;
