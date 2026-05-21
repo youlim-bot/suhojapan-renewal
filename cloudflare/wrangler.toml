@@ -1,0 +1,41 @@
+# ================================================================
+#  SUHO News API — Cloudflare Worker 設定ファイル
+# ================================================================
+#
+# ■ 初回デプロイ手順:
+#   1. npm install -g wrangler
+#   2. wrangler login
+#   3. KV ネームスペース作成:
+#      wrangler kv:namespace create "NEWS_KV"
+#      → 出力された id を下の kv_namespaces[].id に貼り付け
+#   4. R2 バケット作成:
+#      wrangler r2 bucket create suho-news-images
+#      Cloudflare ダッシュボードで「Public Access」を有効化
+#      → 表示される公開URL を vars.R2_PUBLIC_URL に貼り付け
+#   5. 管理者トークンをシークレットとして設定:
+#      wrangler secret put ADMIN_TOKEN
+#      （任意のパスワードを入力してください）
+#   6. デプロイ:
+#      wrangler deploy
+#   7. 出力されたWorker URL（例: https://suho-news.xxx.workers.dev）を
+#      admin/index.html の WORKER_URL に設定
+# ================================================================
+
+name       = "suho-news-api"
+main       = "worker.js"
+compatibility_date = "2024-01-01"
+
+# KV ネームスペース（記事データを保存）
+[[kv_namespaces]]
+binding = "NEWS_KV"
+id      = "ここにKV_IDを貼り付け"  # wrangler kv:namespace create の出力値
+
+# R2 バケット（画像を保存）
+[[r2_buckets]]
+binding    = "NEWS_R2"
+bucket_name = "suho-news-images"
+
+# 環境変数
+[vars]
+R2_PUBLIC_URL = "https://pub-ここにR2公開URLを貼り付け.r2.dev"
+# ADMIN_TOKEN は wrangler secret put ADMIN_TOKEN で設定（このファイルには書かないこと）
