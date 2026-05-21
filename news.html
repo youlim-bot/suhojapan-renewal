@@ -465,7 +465,9 @@
 
     /* ── Load articles: Worker API → fallback to news-data.json ── */
     (async function loadNews() {
-      const WORKER_URL = localStorage.getItem('suho_worker_url') || '';
+      // 本番 Worker URL（Cloudflare Pages デプロイ後は自動的にここから取得）
+      const WORKER_URL = localStorage.getItem('suho_worker_url')
+                      || 'https://suho-news-api.biz-e3c.workers.dev';
       try {
         let articles;
         if (WORKER_URL) {
