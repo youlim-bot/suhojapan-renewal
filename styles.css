@@ -197,7 +197,7 @@ body:has(button:hover) #cursor { width: 20px; height: 20px; background: var(--cy
   transform: rotate(15deg) scale(1.08);
 }
 .nav-logo em { color: var(--indigo); font-style: normal; font-size: .8em; margin-left: 2px; }
-.nav-logo-text { font-size: 36px; font-weight: 900; line-height: 1; letter-spacing: -.02em; background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.nav-logo-text { font-size: 34px; font-weight: 900; line-height: 1; letter-spacing: -.02em; color: #fff; -webkit-text-fill-color: #fff; font-style: italic; transform: skewX(-8deg); display: inline-block; }
 .footer-logo-text { color: #fff; font-weight: 700; }
 .footer-logo-text em { color: var(--indigo); font-style: normal; }
 [data-theme="light"] .footer-logo-text { color: var(--text); }
