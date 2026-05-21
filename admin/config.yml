@@ -1,0 +1,90 @@
+# ======================================================
+#  SUHO 管理者ページ設定 — Decap CMS config.yml
+# ======================================================
+#
+# ■ ローカル開発での起動方法：
+#   1. ターミナル①: suhojapan-renewal ディレクトリで
+#      npx decap-server
+#   2. ターミナル②: 同ディレクトリで
+#      npx serve -l 3456
+#   3. ブラウザで http://localhost:3456/admin/ を開く
+#
+# ■ 本番環境（GitHub Pages / Netlify 等）にデプロイする場合：
+#   - local_backend の行を削除またはコメントアウト
+#   - GitHub OAuth Appを作成し、base_url を設定する
+#     (詳細: https://decapcms.org/docs/github-backend/)
+# ======================================================
+
+local_backend: true
+
+backend:
+  name: github
+  repo: youlim-bot/suhojapan-renewal
+  branch: main
+
+media_folder: assets
+public_folder: /assets
+
+locale: ja
+
+collections:
+  - name: news
+    label: ニュース管理
+    files:
+      - name: news_list
+        label: 記事一覧
+        file: news-data.json
+        fields:
+          - name: articles
+            label: 記事
+            label_singular: 記事
+            widget: list
+            minimize_collapsed: true
+            summary: "{{fields.date}}  |  {{fields.title}}"
+            fields:
+              - name: title
+                label: タイトル
+                widget: string
+
+              - name: category
+                label: カテゴリ
+                widget: select
+                options:
+                  - { label: "コーポレート", value: corporate }
+                  - { label: "サービス",     value: service }
+                  - { label: "パートナーシップ", value: partnership }
+                  - { label: "イベント",     value: event }
+
+              - name: date
+                label: "日付 (YYYY.MM.DD)"
+                widget: datetime
+                format: "YYYY.MM.DD"
+                date_format: "YYYY.MM.DD"
+                time_format: false
+                picker_utc: false
+
+              - name: excerpt
+                label: 概要文（一覧に表示）
+                widget: text
+                required: false
+                hint: "1〜2文程度の概要を入力してください"
+
+              - name: link
+                label: 詳細ページURL
+                widget: string
+                default: "#"
+                required: false
+                hint: '外部リンクは https:// から。詳細ページなければ # のまま'
+
+              - name: emoji
+                label: アイコン絵文字
+                widget: string
+                default: "📰"
+                required: false
+                hint: "サムネイルに表示する絵文字（例: 🤝 🛡️ ☁️ 🎮 📊）"
+
+              - name: featured
+                label: フィーチャー記事として表示
+                widget: boolean
+                default: false
+                hint: "ONにするとページ上部に大きく表示されます（1件のみ有効）"

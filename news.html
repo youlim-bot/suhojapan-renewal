@@ -310,7 +310,6 @@
   </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-  <script src="news-data.js"></script>
   <script>
     /* ── Theme ── */
     (function(){
@@ -349,6 +348,7 @@
     const CAT_LABEL = { corporate: 'コーポレート', service: 'サービス', partnership: 'パートナーシップ', event: 'イベント' };
     const CAT_CSS   = { corporate: '',              service: 'pr',       partnership: 'award',            event: 'event' };
 
+    let NEWS_DATA     = [];
     let currentFilter = 'all';
     let currentPage   = 1;
 
@@ -455,7 +455,17 @@
       });
     });
 
-    renderAll();
+    /* ── Load news-data.json then render ── */
+    fetch('news-data.json')
+      .then(r => r.json())
+      .then(data => {
+        NEWS_DATA = data.articles || [];
+        renderAll();
+      })
+      .catch(() => {
+        document.getElementById('news-grid').innerHTML =
+          '<p style="color:var(--text-muted);padding:40px 0;text-align:center">記事データの読み込みに失敗しました。</p>';
+      });
 
     /* ── Three.js Hero ── */
     (function(){
