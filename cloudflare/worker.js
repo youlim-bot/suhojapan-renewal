@@ -39,6 +39,34 @@ export default {
     };
 
     try {
+      /* ── GET / ─────────────────────────────────── */
+      if (path === '/' && method === 'GET') {
+        const raw  = await env.NEWS_KV.get('articles');
+        const count = raw ? JSON.parse(raw).length : 0;
+        return new Response(`<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>SUHO News API</title>
+<style>body{font-family:sans-serif;background:#0f172a;color:#f1f5f9;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0}
+.card{background:#1e293b;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:40px;text-align:center;max-width:420px}
+h1{background:linear-gradient(135deg,#6366f1,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.8rem;margin:0 0 8px}
+p{color:#94a3b8;margin:6px 0}.badge{display:inline-block;background:rgba(16,185,129,.15);color:#10b981;border:1px solid rgba(16,185,129,.3);border-radius:8px;padding:4px 14px;font-size:.85rem;font-weight:700;margin-bottom:20px}
+.ep{background:#0f172a;border-radius:10px;padding:14px;text-align:left;font-size:.82rem;color:#94a3b8;margin-top:20px}
+.ep div{padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05)}.ep div:last-child{border:none}
+.method{color:#6366f1;font-weight:700;margin-right:8px}</style></head>
+<body><div class="card">
+<h1>SUHO News API</h1>
+<div class="badge">✅ 稼働中</div>
+<p>記事数: <strong style="color:#f1f5f9">${count}件</strong></p>
+<div class="ep">
+<div><span class="method">GET</span>/articles</div>
+<div><span class="method">POST</span>/articles</div>
+<div><span class="method">PUT</span>/articles/:id</div>
+<div><span class="method">DELETE</span>/articles/:id</div>
+<div><span class="method">POST</span>/upload</div>
+<div><span class="method">GET</span>/image/:filename</div>
+</div></div></body></html>`, {
+          headers: { 'Content-Type': 'text/html;charset=UTF-8', ...CORS },
+        });
+      }
+
       /* ── GET /articles ─────────────────────────── */
       if (path === '/articles' && method === 'GET') {
         const raw = await env.NEWS_KV.get('articles');
