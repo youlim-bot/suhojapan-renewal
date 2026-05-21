@@ -294,78 +294,227 @@ document.getElementById('contactForm').addEventListener('submit', e => {
   animate();
 })();
 
-// ── CLOUD: 3D Infrastructure ─────────────────────────
+// ── CLOUD: Isometric Cube Network ────────────────────
 (function initCloud() {
   const canvas = document.getElementById('cloud-3d');
   if (!canvas) return;
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(canvas.offsetWidth || 600, canvas.offsetHeight || 500);
 
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(50, 600/500, 0.1, 100);
-  camera.position.set(0, 0, 8);
+  const W = canvas.offsetWidth  || 600;
+  const H = canvas.offsetHeight || 500;
+  canvas.width  = W * Math.min(devicePixelRatio, 2);
+  canvas.height = H * Math.min(devicePixelRatio, 2);
+  const ctx = canvas.getContext('2d');
+  const DPR = Math.min(devicePixelRatio, 2);
+  ctx.scale(DPR, DPR);
 
-  const light = new THREE.DirectionalLight(0xffffff, 1);
-  light.position.set(5, 5, 5);
-  scene.add(light, new THREE.AmbientLight(0x6366f1, 0.5));
+  /* ── Isometric helpers ── */
+  const ISO_X =  0.866;  // cos30
+  const ISO_Y =  0.5;    // sin30
 
-  // Server boxes
-  const boxes = [];
-  const boxMat = new THREE.MeshPhongMaterial({ color: 0x1e293b, emissive: 0x6366f1, emissiveIntensity: 0.1, wireframe: false });
-  const edgeMat = new THREE.LineBasicMaterial({ color: 0x6366f1, transparent: true, opacity: 0.6 });
+  function isoProject(x, y, z) {
+    return {
+      sx: (x - z) * ISO_X,
+      sy: (x + z) * ISO_Y - y,
+    };
+  }
 
-  const positions = [
-    [-2.5, 0, 0], [0, 0, 0], [2.5, 0, 0],
-    [-1.25, -1.8, 0], [1.25, -1.8, 0],
-    [0, 1.8, 0],
+  /* ── Cube drawing ── */
+  function drawCube(cx, cy, gx, gy, gz, size, colors, alpha = 1) {
+    const s = size;
+    const pts = (dx,dy,dz) => {
+      const p = isoProject(gx+dx, gy+dy, gz+dz);
+      return [cx + p.sx * s, cy + p.sy * s];
+    };
+
+    // Top face
+    ctx.beginPath();
+    ctx.moveTo(...pts(0,1,0)); ctx.lineTo(...pts(1,1,0));
+    ctx.lineTo(...pts(1,1,1)); ctx.lineTo(...pts(0,1,1));
+    ctx.closePath();
+    ctx.fillStyle   = `rgba(${colors.top},${alpha})`;
+    ctx.strokeStyle = `rgba(${colors.edge},${alpha * 0.8})`;
+    ctx.lineWidth = 0.7;
+    ctx.fill(); ctx.stroke();
+
+    // Left face
+    ctx.beginPath();
+    ctx.moveTo(...pts(0,0,0)); ctx.lineTo(...pts(0,1,0));
+    ctx.lineTo(...pts(0,1,1)); ctx.lineTo(...pts(0,0,1));
+    ctx.closePath();
+    ctx.fillStyle = `rgba(${colors.left},${alpha})`;
+    ctx.fill(); ctx.stroke();
+
+    // Right face
+    ctx.beginPath();
+    ctx.moveTo(...pts(1,0,0)); ctx.lineTo(...pts(1,1,0));
+    ctx.lineTo(...pts(1,1,1)); ctx.lineTo(...pts(1,0,1));
+    ctx.closePath();
+    ctx.fillStyle = `rgba(${colors.right},${alpha})`;
+    ctx.fill(); ctx.stroke();
+  }
+
+  /* ── Logo text on cube top ── */
+  function drawLabel(cx, cy, gx, gy, gz, size, text, color) {
+    const s  = size;
+    const pt = isoProject(gx + 0.5, gy + 1.02, gz + 0.5);
+    const tx = cx + pt.sx * s;
+    const ty = cy + pt.sy * s;
+    ctx.save();
+    ctx.font = `bold ${size * 0.28}px "Inter", sans-serif`;
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    // Isometric skew
+    ctx.transform(ISO_X, -ISO_Y, ISO_X, ISO_Y, tx - ISO_X * 0 * s, ty);
+    ctx.fillText(text, 0, 0);
+    ctx.restore();
+  }
+
+  /* ── Glowing connection line ── */
+  function drawConnection(x1, y1, x2, y2, progress, alpha) {
+    const len = Math.hypot(x2 - x1, y2 - y1);
+    const nx  = (x2 - x1) / len;
+    const ny  = (y2 - y1) / len;
+
+    // Base line
+    ctx.beginPath();
+    ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+    const g = ctx.createLinearGradient(x1, y1, x2, y2);
+    g.addColorStop(0,   `rgba(6,182,212,${alpha * 0.15})`);
+    g.addColorStop(0.5, `rgba(99,102,241,${alpha * 0.4})`);
+    g.addColorStop(1,   `rgba(6,182,212,${alpha * 0.15})`);
+    ctx.strokeStyle = g;
+    ctx.lineWidth   = 1.5;
+    ctx.stroke();
+
+    // Glow line
+    ctx.beginPath();
+    ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+    ctx.strokeStyle = `rgba(6,182,212,${alpha * 0.1})`;
+    ctx.lineWidth   = 4;
+    ctx.stroke();
+
+    // Traveling particle
+    const px = x1 + nx * len * progress;
+    const py = y1 + ny * len * progress;
+    ctx.beginPath();
+    ctx.arc(px, py, 3, 0, Math.PI * 2);
+    const pg = ctx.createRadialGradient(px, py, 0, px, py, 6);
+    pg.addColorStop(0,   `rgba(160,200,255,${alpha})`);
+    pg.addColorStop(0.5, `rgba(6,182,212,${alpha * 0.8})`);
+    pg.addColorStop(1,   'rgba(6,182,212,0)');
+    ctx.fillStyle = pg;
+    ctx.fill();
+
+    // Node dots at each end
+    [  [x1, y1], [x2, y2]  ].forEach(([nx2, ny2]) => {
+      ctx.beginPath();
+      ctx.arc(nx2, ny2, 4, 0, Math.PI * 2);
+      const ng = ctx.createRadialGradient(nx2, ny2, 0, nx2, ny2, 7);
+      ng.addColorStop(0,   `rgba(180,220,255,${alpha * 0.9})`);
+      ng.addColorStop(0.6, `rgba(6,182,212,${alpha * 0.5})`);
+      ng.addColorStop(1,   'rgba(6,182,212,0)');
+      ctx.fillStyle = ng;
+      ctx.fill();
+    });
+  }
+
+  /* ── Cube configs ── */
+  // Colors: top / left / right / edge
+  const METAL  = { top:'180,188,200', left:'120,130,145', right:'95,105,120',  edge:'140,160,180' };
+  const GLASS  = { top:'160,200,230', left:'100,150,190', right:'80,130,170',  edge:'100,180,220' };
+  const DARK   = { top:'50,65,85',    left:'35,45,60',    right:'28,38,52',    edge:'60,100,140'  };
+
+  // [gridX, gridY, gridZ, size, style, label, labelColor, floatOffset]
+  const CUBES = [
+    // Center main
+    { gx:0, gy:0, gz:0, sz:52, col:METAL, lbl:'☁',  lc:'rgba(160,210,255,0.95)', fo:0 },
+    // Top
+    { gx:0, gy:0, gz:0, sz:38, col:GLASS, lbl:'GCP', lc:'rgba(255,200,80,0.9)',  fo:0.5, ox:80,  oy:-110 },
+    // Top right
+    { gx:0, gy:0, gz:0, sz:36, col:GLASS, lbl:'☁',  lc:'rgba(160,210,255,0.9)', fo:1.2, ox:160, oy:-60  },
+    // Left
+    { gx:0, gy:0, gz:0, sz:38, col:METAL, lbl:'aws', lc:'rgba(255,165,0,0.9)',   fo:0.8, ox:-160,oy:-20  },
+    // Bottom left
+    { gx:0, gy:0, gz:0, sz:34, col:GLASS, lbl:'A',   lc:'rgba(0,180,255,0.9)',   fo:1.5, ox:-90, oy:100  },
+    // Bottom center
+    { gx:0, gy:0, gz:0, sz:34, col:DARK,  lbl:'',    lc:'',                      fo:2.0, ox:20,  oy:130  },
+    // Bottom right
+    { gx:0, gy:0, gz:0, sz:36, col:DARK,  lbl:'[:]', lc:'rgba(100,180,255,0.8)', fo:1.0, ox:130, oy:100  },
+    // Far right
+    { gx:0, gy:0, gz:0, sz:36, col:METAL, lbl:'GC',  lc:'rgba(80,200,120,0.9)',  fo:0.3, ox:185, oy:30   },
+    // Top left
+    { gx:0, gy:0, gz:0, sz:32, col:DARK,  lbl:'',    lc:'',                      fo:1.8, ox:-50, oy:-90  },
+    // Small extra
+    { gx:0, gy:0, gz:0, sz:28, col:DARK,  lbl:'',    lc:'',                      fo:2.5, ox:50,  oy:-60  },
   ];
 
-  positions.forEach(([x, y, z]) => {
-    const geo = new THREE.BoxGeometry(1, 0.6, 0.4);
-    const mesh = new THREE.Mesh(geo, boxMat.clone());
-    mesh.position.set(x, y, z);
-    const edges = new THREE.EdgesGeometry(geo);
-    const line = new THREE.LineSegments(edges, edgeMat.clone());
-    mesh.add(line);
-    scene.add(mesh);
-    boxes.push(mesh);
-  });
+  // Connections: [from index, to index]
+  const CONNS = [
+    [0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[0,7],[1,2],[3,4],[6,7]
+  ];
 
-  // Connecting lines between boxes
-  const connMat = new THREE.LineBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.4 });
-  const connections = [[0,1],[1,2],[1,3],[1,4],[1,5],[0,3],[2,4],[3,4]];
-  connections.forEach(([a, b]) => {
-    const geo = new THREE.BufferGeometry().setFromPoints([boxes[a].position, boxes[b].position]);
-    scene.add(new THREE.Line(geo, connMat));
-  });
+  const cx = W * 0.5;
+  const cy = H * 0.52;
+  let t = 0;
 
-  // Central glowing sphere
-  const sphereGeo = new THREE.SphereGeometry(0.25, 16, 16);
-  const sphereMat = new THREE.MeshPhongMaterial({ color: 0x6366f1, emissive: 0x6366f1, emissiveIntensity: 0.8, transparent: true, opacity: 0.9 });
-  const sphere = new THREE.Mesh(sphereGeo, sphereMat);
-  scene.add(sphere);
-
-  // Orbit ring
-  const ringGeo = new THREE.TorusGeometry(1.2, 0.02, 8, 64);
-  const ringMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4, transparent: true, opacity: 0.4 });
-  const ring = new THREE.Mesh(ringGeo, ringMat);
-  ring.rotation.x = Math.PI / 2;
-  scene.add(ring);
-
-  function animate() {
-    requestAnimationFrame(animate);
-    const t = performance.now() * 0.001;
-    boxes.forEach((b, i) => {
-      b.position.y = positions[i][1] + Math.sin(t + i) * 0.08;
-      b.children[0].material.opacity = 0.4 + 0.4 * Math.abs(Math.sin(t * 2 + i));
-    });
-    sphere.scale.setScalar(1 + 0.15 * Math.sin(t * 3));
-    ring.rotation.z = t * 0.5;
-    scene.rotation.y = t * 0.2;
-    renderer.render(scene, camera);
+  function getCenter(cube, t) {
+    const float = Math.sin(t * 0.6 + cube.fo) * 5;
+    const x = cx + (cube.ox || 0);
+    const y = cy + (cube.oy || 0) + float;
+    return { x, y };
   }
-  animate();
+
+  function render() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Background glow
+    const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, W * 0.55);
+    bg.addColorStop(0,   'rgba(6,20,50,0.0)');
+    bg.addColorStop(0.5, 'rgba(6,30,60,0.0)');
+    bg.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // Draw connections
+    CONNS.forEach(([ai, bi], ci) => {
+      const a = getCenter(CUBES[ai], t);
+      const b = getCenter(CUBES[bi], t);
+      const prog = ((t * 0.4 + ci * 0.37) % 1 + 1) % 1;
+      drawConnection(a.x, a.y, b.x, b.y, prog, 0.85);
+    });
+
+    // Draw cubes (sorted by y for pseudo-depth)
+    [...CUBES]
+      .map((c, i) => ({ ...c, i, ...getCenter(c, t) }))
+      .sort((a, b) => a.y - b.y)
+      .forEach(c => {
+        const float = Math.sin(t * 0.6 + c.fo) * 5;
+        const bx = cx + (c.ox || 0);
+        const by = cy + (c.oy || 0) + float;
+
+        // Shadow
+        const sh = ctx.createRadialGradient(bx, by + c.sz * 0.6, 0, bx, by + c.sz * 0.6, c.sz * 0.7);
+        sh.addColorStop(0, 'rgba(0,10,30,0.35)');
+        sh.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = sh; ctx.fillRect(bx - c.sz, by, c.sz * 2, c.sz);
+
+        drawCube(bx, by, 0, 0, 0, c.sz, c.col, 0.92);
+        if (c.lbl) drawLabel(bx, by, 0, 0, 0, c.sz, c.lbl, c.lc);
+      });
+
+    t += 0.012;
+    requestAnimationFrame(render);
+  }
+  render();
+
+  window.addEventListener('resize', () => {
+    const nw = canvas.offsetWidth || 600;
+    const nh = canvas.offsetHeight || 500;
+    canvas.width  = nw * DPR;
+    canvas.height = nh * DPR;
+    ctx.scale(DPR, DPR);
+  });
 })();
 
 // ── PRODUCTS: Orbit Scene ────────────────────────────
