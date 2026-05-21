@@ -208,30 +208,6 @@ document.getElementById('contactForm').addEventListener('submit', e => {
   const mat = new THREE.PointsMaterial({ size: 0.04, vertexColors: true, transparent: true, opacity: 0.8 });
   scene.add(new THREE.Points(geo, mat));
 
-  // Floating wireframe geometries
-  const shapes = [];
-  const geoms = [
-    new THREE.IcosahedronGeometry(0.7, 1),
-    new THREE.OctahedronGeometry(0.5, 0),
-    new THREE.TetrahedronGeometry(0.5, 0),
-    new THREE.TorusGeometry(0.5, 0.15, 8, 12),
-  ];
-  const wireMat = new THREE.MeshBasicMaterial({ color: 0x6366f1, wireframe: true, transparent: true, opacity: 0.25 });
-  const wireMat2 = new THREE.MeshBasicMaterial({ color: 0x06b6d4, wireframe: true, transparent: true, opacity: 0.25 });
-  const configs = [
-    {x: -3, y: 1.5, z: -2, mat: wireMat},
-    {x:  3, y: -1,  z: -1, mat: wireMat2},
-    {x: -2, y: -2,  z: -3, mat: wireMat},
-    {x:  2.5, y: 2, z: -2, mat: wireMat2},
-  ];
-  geoms.forEach((g, i) => {
-    const mesh = new THREE.Mesh(g, configs[i].mat.clone());
-    mesh.position.set(configs[i].x, configs[i].y, configs[i].z);
-    mesh.userData = { speedX: (Math.random()-.5)*0.005, speedY: (Math.random()-.5)*0.005 };
-    shapes.push(mesh);
-    scene.add(mesh);
-  });
-
   // Mouse parallax
   let mouseX = 0, mouseY = 0;
   document.addEventListener('mousemove', e => {
@@ -242,11 +218,6 @@ document.getElementById('contactForm').addEventListener('submit', e => {
   function animate() {
     requestAnimationFrame(animate);
     const t = performance.now() * 0.001;
-    shapes.forEach((m, i) => {
-      m.rotation.x += m.userData.speedX;
-      m.rotation.y += m.userData.speedY;
-      m.position.y = configs[i].y + Math.sin(t * 0.5 + i) * 0.3;
-    });
     camera.position.x += (mouseX * 0.3 - camera.position.x) * 0.03;
     camera.position.y += (-mouseY * 0.2 - camera.position.y) * 0.03;
     scene.rotation.y = t * 0.02;
