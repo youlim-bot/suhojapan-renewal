@@ -1,20 +1,7 @@
 /* ===== SUHO JAPAN — Interactive 3D Website ===== */
 
-// ── Theme Toggle ─────────────────────────────────────
-(function initTheme() {
-  const saved = localStorage.getItem('suho-theme') || 'dark';
-  document.documentElement.setAttribute('data-theme', saved);
-
-  const btn = document.getElementById('themeToggle');
-  if (!btn) return;
-
-  btn.addEventListener('click', () => {
-    const current = document.documentElement.getAttribute('data-theme');
-    const next = current === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('suho-theme', next);
-  });
-})();
+// Dark mode only
+document.documentElement.setAttribute('data-theme', 'dark');
 
 // ── Loader ──────────────────────────────────────────
 window.addEventListener('load', () => {
