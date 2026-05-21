@@ -111,7 +111,7 @@ body {
 #loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
 
 .loader-inner { display: flex; flex-direction: column; align-items: center; gap: 24px; }
-.loader-logo { width: 72px; height: 72px; animation: spin 2s linear infinite; }
+.loader-logo { width: 72px; height: 72px; object-fit: contain; aspect-ratio: 1 / 1; animation: spin 2s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .loader-bar {
