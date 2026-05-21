@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ニュース | 株式会社スホ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .page-hero {
+      position: relative;
+      padding: calc(var(--nav-h) + 80px) 0 80px;
+      background: linear-gradient(160deg, var(--bg) 0%, var(--bg-alt) 100%);
+      overflow: hidden;
+    }
+    .page-hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .page-hero-inner { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+    .page-hero-title {
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: 900; line-height: 1.1;
+      letter-spacing: -.03em; margin-bottom: 20px;
+    }
+    .page-hero-sub { font-size: 1.05rem; line-height: 1.8; color: var(--text-muted); max-width: 520px; }
+
+    /* ── Filter ── */
+    .news-filter {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+    .filter-btn {
+      padding: 8px 18px; border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--surface); color: var(--text-muted);
+      font-size: .85rem; font-weight: 600; cursor: pointer;
+      transition: all .2s;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: rgba(99,102,241,.15); border-color: var(--indigo); color: var(--indigo);
+    }
+
+    /* ── Featured Article ── */
+    .news-featured {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+      margin-bottom: 56px; align-items: center;
+    }
+    .featured-img {
+      border-radius: var(--radius); overflow: hidden;
+      aspect-ratio: 16/9; background: linear-gradient(135deg, rgba(99,102,241,.2), rgba(6,182,212,.1));
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .featured-img .fi-emoji { font-size: 4rem; }
+    .featured-img .fi-label {
+      position: absolute; bottom: 16px; left: 16px;
+      font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+      background: var(--grad); color: #fff; padding: 5px 12px; border-radius: 6px;
+    }
+    .featured-content { }
+    .news-cat {
+      display: inline-block; font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      padding: 4px 12px; border-radius: 6px; margin-bottom: 14px;
+      background: rgba(99,102,241,.12); color: var(--indigo); border: 1px solid rgba(99,102,241,.2);
+    }
+    .news-cat.pr     { background: rgba(6,182,212,.12);  color: var(--cyan);   border-color: rgba(6,182,212,.2); }
+    .news-cat.award  { background: rgba(245,158,11,.12); color: var(--yellow); border-color: rgba(245,158,11,.2); }
+    .news-cat.tech   { background: rgba(168,85,247,.12); color: var(--purple); border-color: rgba(168,85,247,.2); }
+    .news-cat.event  { background: rgba(16,185,129,.12); color: var(--green);  border-color: rgba(16,185,129,.2); }
+    .featured-title {
+      font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+      font-weight: 800; line-height: 1.3; margin-bottom: 14px;
+    }
+    .featured-excerpt { font-size: .9rem; color: var(--text-muted); line-height: 1.8; margin-bottom: 20px; }
+    .news-meta { display: flex; align-items: center; gap: 12px; font-size: .8rem; color: var(--text-muted); margin-bottom: 20px; }
+    .news-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--text-muted); }
+    .read-more {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: .875rem; font-weight: 600; color: var(--indigo);
+      text-decoration: none; transition: gap .2s, color .2s;
+    }
+    .read-more:hover { gap: 10px; color: var(--cyan); }
+
+    /* ── News Grid ── */
+    .news-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+      margin-bottom: 56px;
+    }
+    .news-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+      cursor: pointer; text-decoration: none; color: inherit;
+      transition: border-color .3s, transform .3s, box-shadow .3s;
+      display: flex; flex-direction: column;
+    }
+    .news-card:hover {
+      border-color: rgba(99,102,241,.4); transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(99,102,241,.1);
+    }
+    .card-thumb {
+      aspect-ratio: 16/9;
+      background: linear-gradient(135deg, rgba(99,102,241,.15), rgba(6,182,212,.08));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem; border-bottom: 1px solid var(--border);
+      position: relative; overflow: hidden;
+    }
+    .card-thumb::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,.2));
+    }
+    .card-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+    .card-body .news-cat { margin-bottom: 10px; }
+    .card-title { font-size: .975rem; font-weight: 700; line-height: 1.45; margin-bottom: 10px; flex: 1; }
+    .card-excerpt { font-size: .82rem; color: var(--text-muted); line-height: 1.65; margin-bottom: 14px; }
+    .card-meta { font-size: .75rem; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+    .card-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: currentColor; }
+
+    /* ── Pagination ── */
+    .pagination {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin-bottom: 0;
+    }
+    .page-btn {
+      width: 40px; height: 40px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text-muted); font-size: .875rem; font-weight: 600;
+      cursor: pointer; transition: all .2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .page-btn:hover, .page-btn.active {
+      background: rgba(99,102,241,.15); border-color: var(--indigo); color: var(--indigo);
+    }
+    .page-btn.arrow { font-size: 1rem; }
+
+    /* ── Newsletter ── */
+    .newsletter {
+      margin-top: 80px;
+      padding: 64px 48px; text-align: center;
+      background: linear-gradient(135deg, rgba(99,102,241,.08), rgba(6,182,212,.05));
+      border: 1px solid rgba(99,102,241,.15); border-radius: 24px;
+    }
+    .newsletter h2 { font-size: clamp(1.5rem, 2.5vw, 2rem); font-weight: 800; margin-bottom: 12px; }
+    .newsletter p  { color: var(--text-muted); margin-bottom: 28px; }
+    .newsletter-form {
+      display: flex; gap: 12px; max-width: 480px; margin: 0 auto; flex-wrap: wrap; justify-content: center;
+    }
+    .newsletter-form input {
+      flex: 1; min-width: 220px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 12px 16px;
+      color: var(--text); font-size: .9rem; font-family: inherit; outline: none;
+      transition: border-color .2s;
+    }
+    .newsletter-form input:focus { border-color: var(--indigo); }
+    .newsletter-form input::placeholder { color: var(--text-muted); }
+    .newsletter-form .btn-primary { flex-shrink: 0; }
+
+    @media (max-width: 1024px) { .news-grid { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 768px)  {
+      .news-featured { grid-template-columns: 1fr; }
+      .news-grid { grid-template-columns: 1fr; }
+      .newsletter { padding: 40px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="cursor"></div>
+  <div id="cursor-trail"></div>
+
+  <!-- ===== NAV ===== -->
+  <nav id="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">
+        <img src="assets/suho-logo.png" alt="SUHO" class="nav-logo-img" />
+        <span>スホ<em>SUHO</em></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html#ai-service">AI Service</a></li>
+        <li><a href="index.html#cloud">Cloud Consulting</a></li>
+        <li><a href="index.html#managed">Managed Service</a></li>
+        <li><a href="index.html#products">Security &amp; Products</a></li>
+        <li><a href="index.html#about">About</a></li>
+      </ul>
+      <button class="theme-toggle" id="themeToggle" aria-label="テーマ切替">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+      <a href="index.html#contact" class="nav-cta">お問い合わせ</a>
+      <button class="hamburger" id="hamburger" aria-label="menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <ul>
+      <li><a href="index.html#ai-service">AI Service</a></li>
+      <li><a href="index.html#cloud">Cloud Consulting</a></li>
+      <li><a href="index.html#managed">Managed Service</a></li>
+      <li><a href="index.html#products">Security &amp; Products</a></li>
+      <li><a href="index.html#about">About</a></li>
+      <li><a href="index.html#contact" class="mobile-cta">お問い合わせ</a></li>
+    </ul>
+  </div>
+
+  <!-- ===== HERO ===== -->
+  <section class="page-hero">
+    <canvas id="news-canvas"></canvas>
+    <div class="page-hero-inner">
+      <div class="section-tag">ニュース — News &amp; Updates</div>
+      <h1 class="page-hero-title">
+        スホの最新情報<br/>
+        <span class="gradient-text">お知らせ・プレスリリース</span>
+      </h1>
+      <p class="page-hero-sub">製品アップデート、導入事例、受賞情報、イベントなど、株式会社スホの最新情報をお届けします。</p>
+    </div>
+  </section>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <section class="section">
+    <div class="container">
+
+      <!-- Filter -->
+      <div class="news-filter">
+        <button class="filter-btn active" data-filter="all">すべて</button>
+        <button class="filter-btn" data-filter="news">お知らせ</button>
+        <button class="filter-btn" data-filter="pr">プレスリリース</button>
+        <button class="filter-btn" data-filter="tech">技術情報</button>
+        <button class="filter-btn" data-filter="award">受賞・認定</button>
+        <button class="filter-btn" data-filter="event">イベント</button>
+      </div>
+
+      <!-- Featured -->
+      <div class="news-featured reveal">
+        <div class="featured-img">
+          <span class="fi-emoji">🤖</span>
+          <span class="fi-label">Featured</span>
+        </div>
+        <div class="featured-content">
+          <span class="news-cat tech">技術情報</span>
+          <h2 class="featured-title">SUHO AI Studio v2.0リリース — ノーコードAIモデル構築が10倍高速に</h2>
+          <p class="featured-excerpt">当社の旗艦プロダクトSUHO AI Studioがメジャーバージョンアップを実施。新しいAutoML機能とリアルタイムパイプライン監視ダッシュボードを搭載し、AIモデルの開発・デプロイ時間を最大10倍短縮します。</p>
+          <div class="news-meta">
+            <span>2024年12月18日</span>
+            <span class="dot"></span>
+            <span>プロダクトアップデート</span>
+            <span class="dot"></span>
+            <span>読了 5分</span>
+          </div>
+          <a href="#" class="read-more">続きを読む →</a>
+        </div>
+      </div>
+
+      <!-- Grid -->
+      <div class="news-grid">
+
+        <a href="#" class="news-card reveal" data-category="pr">
+          <div class="card-thumb">🏢</div>
+          <div class="card-body">
+            <span class="news-cat pr">プレスリリース</span>
+            <div class="card-title">株式会社スホ、Series B資金調達20億円を完了。アジア太平洋市場への事業拡大を加速</div>
+            <p class="card-excerpt">本ラウンドには国内大手VCおよびグローバルテックファンドが参加。調達資金は製品開発と海外拠点設立に充てる予定です。</p>
+            <div class="card-meta"><span>2024年12月10日</span><span class="dot"></span><span>プレスリリース</span></div>
+          </div>
+        </a>
+
+        <a href="#" class="news-card reveal reveal-delay-1" data-category="award">
+          <div class="card-thumb">🏆</div>
+          <div class="card-body">
+            <span class="news-cat award">受賞・認定</span>
+            <div class="card-title">「AWS Partner Awards 2024」にてジャパンパートナーオブザイヤーを受賞</div>
+            <p class="card-excerpt">AWSジャパンが主催する年次アワードにて最優秀パートナーとして選出。クラウド移行支援における卓越した成果が評価されました。</p>
+            <div class="card-meta"><span>2024年11月28日</span><span class="dot"></span><span>受賞情報</span></div>
+          </div>
+        </a>
+
+        <a href="#" class="news-card reveal reveal-delay-2" data-category="event">
+          <div class="card-thumb">📅</div>
+          <div class="card-body">
+            <span class="news-cat event">イベント</span>
+            <div class="card-title">【開催レポート】SUHO Tech Conference 2024 — 500名以上が参加</div>
+            <p class="card-excerpt">12月5日に開催した年次テックカンファレンスに過去最多の522名が参加。生成AIとマルチクラウド戦略をテーマに白熱した議論が交わされました。</p>
+            <div class="card-meta"><span>2024年12月8日</span><span class="dot"></span><span>イベント</span></div>
+          </div>
+        </a>
+
+        <a href="#" class="news-card reveal" data-category="news">
+          <div class="card-thumb">🏥</div>
+          <div class="card-body">
+            <span class="news-cat">お知らせ</span>
+            <div class="card-title">大手医療グループへのAI診断支援システム導入事例を公開</div>
+            <p class="card-excerpt">全国500床以上の急性期病院グループへの医療画像AI診断支援システム導入事例を公開しました。診断精度98.3%を達成。</p>
+            <div class="card-meta"><span>2024年11月20日</span><span class="dot"></span><span>導入事例</span></div>
+          </div>
+        </a>
+
+        <a href="#" class="news-card reveal reveal-delay-1" data-category="tech">
+          <div class="card-thumb">⚡</div>
+          <div class="card-body">
+            <span class="news-cat tech">技術情報</span>
+            <div class="card-title">ゼロトラストアーキテクチャ移行ガイド 2025年版を無償公開</div>
+            <p class="card-excerpt">企業のゼロトラスト移行を支援するホワイトペーパー最新版を公開。AWS・Azure・GCP対応の実装チェックリスト付き。</p>
+            <div class="card-meta"><span>2024年11月15日</span><span class="dot"></span><span>技術資料</span></div>
+          </div>
+        </a>
+
+        <a href="#" class="news-card reveal reveal-delay-2" data-category="pr">
+          <div class="card-thumb">🤝</div>
+          <div class="card-body">
+            <span class="news-cat pr">プレスリリース</span>
+            <div class="card-title">Salesforceとのシルバーパートナー契約を締結。CRM×AIの統合ソリューションを提供開始</div>
+            <p class="card-excerpt">Salesforceとのパートナーシップにより、CRMデータとAI予測分析を組み合わせた次世代営業支援ソリューションを提供開始します。</p>
+            <div class="card-meta"><span>2024年11月5日</span><span class="dot"></span><span>パートナーシップ</span></div>
+          </div>
+        </a>
+
+        <a href="#" class="news-card reveal" data-category="event">
+          <div class="card-thumb">🗾</div>
+          <div class="card-body">
+            <span class="news-cat event">イベント</span>
+            <div class="card-title">【登壇情報】Japan IT Week 2025春にSUHOが出展・講演決定</div>
+            <p class="card-excerpt">2025年5月7〜9日、東京ビッグサイトで開催のJapan IT Week春にブース出展と基調講演が決定。AIとクラウドセキュリティをテーマに講演予定。</p>
+            <div class="card-meta"><span>2024年10月30日</span><span class="dot"></span><span>イベント</span></div>
+          </div>
+        </a>
+
+        <a href="#" class="news-card reveal reveal-delay-1" data-category="award">
+          <div class="card-thumb">⭐</div>
+          <div class="card-body">
+            <span class="news-cat award">受賞・認定</span>
+            <div class="card-title">ISO/IEC 27001:2022 認証取得完了。情報セキュリティ管理体制を強化</div>
+            <p class="card-excerpt">国際標準に基づく情報セキュリティマネジメントシステムの認証を取得。お客様データの安全性をさらに高めます。</p>
+            <div class="card-meta"><span>2024年10月22日</span><span class="dot"></span><span>認証取得</span></div>
+          </div>
+        </a>
+
+        <a href="#" class="news-card reveal reveal-delay-2" data-category="news">
+          <div class="card-thumb">🏭</div>
+          <div class="card-body">
+            <span class="news-cat">お知らせ</span>
+            <div class="card-title">製造業向け予知保全AIソリューション「SmartMFG」を正式リリース</div>
+            <p class="card-excerpt">IoTセンサーデータとML予測モデルを組み合わせた設備故障予測システム。導入企業で設備停止時間を平均68%削減。</p>
+            <div class="card-meta"><span>2024年10月10日</span><span class="dot"></span><span>製品リリース</span></div>
+          </div>
+        </a>
+
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination reveal">
+        <button class="page-btn arrow">←</button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <button class="page-btn">4</button>
+        <button class="page-btn arrow">→</button>
+      </div>
+
+      <!-- Newsletter -->
+      <div class="newsletter reveal">
+        <h2>最新情報を<span class="gradient-text">メールで受け取る</span></h2>
+        <p>スホのプレスリリース・技術情報・イベント案内をいち早くお届けします。</p>
+        <form class="newsletter-form" onsubmit="return false;">
+          <input type="email" placeholder="メールアドレスを入力" />
+          <button type="submit" class="btn-primary"><span>登録する</span></button>
+        </form>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="nav-logo" style="margin-bottom:1rem">
+            <img src="assets/suho-logo.png" alt="SUHO" class="nav-logo-img" />
+            <span class="footer-logo-text">スホ <em>SUHO</em></span>
+          </div>
+          <p>AIとクラウドの力で<br/>日本のビジネスを変革する</p>
+          <div class="social-links">
+            <a href="#" aria-label="X">𝕏</a>
+            <a href="#" aria-label="LinkedIn">in</a>
+            <a href="#" aria-label="GitHub">⌥</a>
+          </div>
+        </div>
+        <div class="footer-links">
+          <h4>Services</h4>
+          <ul>
+            <li><a href="index.html#ai-service">AI Service</a></li>
+            <li><a href="index.html#cloud">Cloud Consulting</a></li>
+            <li><a href="index.html#managed">Managed Service</a></li>
+            <li><a href="index.html#products">Security &amp; Products</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="index.html#about">About Us</a></li>
+            <li><a href="recruit.html">採用情報</a></li>
+            <li><a href="news.html" style="color:var(--indigo)">ニュース</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="#">プライバシーポリシー</a></li>
+            <li><a href="#">利用規約</a></li>
+            <li><a href="#">セキュリティポリシー</a></li>
+            <li><a href="index.html#contact">お問い合わせ</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2024 株式会社スホ (Suho Corporation). All rights reserved.</p>
+        <p>東京都港区</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script>
+    (function(){
+      const saved = localStorage.getItem('suho-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', saved);
+      document.getElementById('themeToggle').addEventListener('click', () => {
+        const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('suho-theme', next);
+      });
+    })();
+
+    const cursor = document.getElementById('cursor'), trail = document.getElementById('cursor-trail');
+    let mx=0,my=0,tx=0,ty=0;
+    document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; cursor.style.left=mx+'px'; cursor.style.top=my+'px'; });
+    (function loop(){ tx+=(mx-tx)*.12; ty+=(my-ty)*.12; trail.style.left=tx+'px'; trail.style.top=ty+'px'; requestAnimationFrame(loop); })();
+
+    window.addEventListener('scroll', () => document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40));
+
+    const ham = document.getElementById('hamburger'), mm = document.getElementById('mobileMenu');
+    ham.addEventListener('click', () => { ham.classList.toggle('open'); mm.classList.toggle('open'); });
+    mm.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { ham.classList.remove('open'); mm.classList.remove('open'); }));
+
+    const obs = new IntersectionObserver(entries => entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }), {threshold:.08});
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+    /* ── Filter ── */
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const f = btn.dataset.filter;
+        document.querySelectorAll('.news-card').forEach(card => {
+          card.style.display = (f === 'all' || card.dataset.category === f) ? 'flex' : 'none';
+        });
+      });
+    });
+
+    /* ── Pagination ── */
+    document.querySelectorAll('.page-btn:not(.arrow)').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.page-btn:not(.arrow)').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    /* ── Three.js Hero ── */
+    (function(){
+      const canvas = document.getElementById('news-canvas');
+      if (!canvas || typeof THREE === 'undefined') return;
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true, preserveDrawingBuffer:true });
+      renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+      const w = canvas.parentElement.offsetWidth, h = canvas.parentElement.offsetHeight || 500;
+      renderer.setSize(w, h);
+      const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(60, w/h, 0.1, 100);
+      camera.position.z = 5;
+      const COUNT = 1200, geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(COUNT*3), col = new Float32Array(COUNT*3);
+      const palette = [new THREE.Color('#6366f1'),new THREE.Color('#06b6d4'),new THREE.Color('#a855f7'),new THREE.Color('#ffffff')];
+      for (let i=0; i<COUNT; i++) {
+        pos[i*3]=(Math.random()-.5)*16; pos[i*3+1]=(Math.random()-.5)*10; pos[i*3+2]=(Math.random()-.5)*8;
+        const c=palette[Math.floor(Math.random()*palette.length)];
+        col[i*3]=c.r; col[i*3+1]=c.g; col[i*3+2]=c.b;
+      }
+      geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+      geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+      scene.add(new THREE.Points(geo,new THREE.PointsMaterial({size:.04,vertexColors:true,transparent:true,opacity:.65})));
+      (function animate(){ requestAnimationFrame(animate); scene.rotation.y+=.0004; renderer.render(scene,camera); })();
+    })();
+  </script>
+</body>
+</html>

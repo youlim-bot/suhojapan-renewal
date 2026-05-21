@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>株式会社スホ | AI & Cloud Solutions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ===== LOADER ===== -->
+  <div id="loader">
+    <div class="loader-inner">
+      <img src="assets/suho-logo.png" alt="SUHO" class="loader-logo" />
+      <div class="loader-bar"><div class="loader-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- ===== CURSOR ===== -->
+  <div id="cursor"></div>
+  <div id="cursor-trail"></div>
+
+  <!-- ===== NAV ===== -->
+  <nav id="navbar">
+    <div class="nav-container">
+      <a href="#hero" class="nav-logo">
+        <img src="assets/suho-logo.png" alt="SUHO" class="nav-logo-img" />
+        <span>スホ<em>SUHO</em></span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#ai-service" data-label="AI Service">AI Service</a></li>
+        <li><a href="#cloud" data-label="Cloud Consulting">Cloud Consulting</a></li>
+        <li><a href="#managed" data-label="Managed Service">Managed Service</a></li>
+        <li><a href="#products" data-label="Security & Products">Security &amp; Products</a></li>
+        <li><a href="#about" data-label="About">About</a></li>
+      </ul>
+
+      <button class="theme-toggle" id="themeToggle" aria-label="テーマ切替">
+        <!-- Sun icon -->
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <!-- Moon icon -->
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+
+      <a href="#contact" class="nav-cta">お問い合わせ</a>
+
+      <button class="hamburger" id="hamburger" aria-label="menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- mobile menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <ul>
+      <li><a href="#ai-service">AI Service</a></li>
+      <li><a href="#cloud">Cloud Consulting</a></li>
+      <li><a href="#managed">Managed Service</a></li>
+      <li><a href="#products">Security &amp; Products</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#contact" class="mobile-cta">お問い合わせ</a></li>
+    </ul>
+  </div>
+
+  <!-- ===== HERO ===== -->
+  <section id="hero">
+    <canvas id="hero-canvas"></canvas>
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        AI &amp; Cloud Innovation
+      </div>
+      <h1 class="hero-title">
+        <span class="line">ビジネスを</span>
+        <span class="line gradient-text">次のステージへ</span>
+        <span class="line">進化させる</span>
+      </h1>
+      <p class="hero-sub">
+        AIとクラウドの力で、あなたのビジネスに革命をもたらします。<br/>
+        最先端のテクノロジーと深い専門知識で、未来を共に創ります。
+      </p>
+      <div class="hero-actions">
+        <a href="#ai-service" class="btn-primary">
+          <span>サービスを見る</span>
+          <svg viewBox="0 0 20 20" fill="none"><path d="M5 10h10M11 6l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a href="#contact" class="btn-ghost">お問い合わせ</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><span class="stat-n" data-target="200">0</span><sup>+</sup><p>クライアント</p></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><span class="stat-n" data-target="15">0</span><sup>年</sup><p>実績</p></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><span class="stat-n" data-target="99.9">0</span><sup>%</sup><p>稼働率</p></div>
+      </div>
+    </div>
+    <div class="scroll-indicator">
+      <div class="scroll-line"></div>
+      <span>SCROLL</span>
+    </div>
+  </section>
+
+  <!-- ===== AI SERVICE ===== -->
+  <section id="ai-service" class="section">
+    <canvas id="ai-canvas" class="section-canvas"></canvas>
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">01 — AI Service</div>
+        <h2 class="section-title">AIが切り拓く<br/><span class="gradient-text">新しいビジネス体験</span></h2>
+        <p class="section-desc">最先端の生成AIから業務特化型AIまで、御社のDX推進を全面サポート。データ分析からプロセス自動化まで、AIの力で業務効率を劇的に向上させます。</p>
+      </div>
+
+      <div class="cards-3d-grid">
+        <div class="card-3d" data-tilt>
+          <div class="card-3d-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="8" stroke="url(#ci1)" stroke-width="1.5"/><circle cx="24" cy="8" r="3" stroke="url(#ci1)" stroke-width="1.5"/><circle cx="24" cy="40" r="3" stroke="url(#ci1)" stroke-width="1.5"/><circle cx="8" cy="24" r="3" stroke="url(#ci1)" stroke-width="1.5"/><circle cx="40" cy="24" r="3" stroke="url(#ci1)" stroke-width="1.5"/><path d="M24 11v5M24 32v5M11 24h5M32 24h5" stroke="url(#ci1)" stroke-width="1.5" stroke-linecap="round"/><defs><linearGradient id="ci1" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs></svg>
+            </div>
+            <h3>生成AI導入支援</h3>
+            <p>GPT-4、Claude、Geminiなど最新LLMを活用した業務自動化・コンテンツ生成システムを構築します。</p>
+            <ul class="card-list">
+              <li>チャットボット・バーチャルアシスタント</li>
+              <li>文書生成・要約・翻訳自動化</li>
+              <li>社内ナレッジベース構築</li>
+            </ul>
+            <a href="#contact" class="card-link">詳しく見る →</a>
+          </div>
+        </div>
+
+        <div class="card-3d featured" data-tilt>
+          <div class="card-3d-inner">
+            <div class="card-badge">人気No.1</div>
+            <div class="card-icon">
+              <svg viewBox="0 0 48 48" fill="none"><path d="M6 34L24 8l18 26H6z" stroke="url(#ci2)" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 34l8-14 8 14" stroke="url(#ci2)" stroke-width="1.5" stroke-linejoin="round"/><defs><linearGradient id="ci2" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs></svg>
+            </div>
+            <h3>機械学習・予測分析</h3>
+            <p>膨大なビジネスデータをAIで解析し、売上予測・需要予測・異常検知など高精度な予測モデルを提供します。</p>
+            <ul class="card-list">
+              <li>需要・売上予測システム</li>
+              <li>異常検知・品質管理AI</li>
+              <li>レコメンデーションエンジン</li>
+            </ul>
+            <a href="#contact" class="card-link">詳しく見る →</a>
+          </div>
+        </div>
+
+        <div class="card-3d" data-tilt>
+          <div class="card-3d-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 48 48" fill="none"><rect x="8" y="8" width="14" height="14" rx="2" stroke="url(#ci3)" stroke-width="1.5"/><rect x="26" y="8" width="14" height="14" rx="2" stroke="url(#ci3)" stroke-width="1.5"/><rect x="8" y="26" width="14" height="14" rx="2" stroke="url(#ci3)" stroke-width="1.5"/><rect x="26" y="26" width="14" height="14" rx="2" stroke="url(#ci3)" stroke-width="1.5"/><defs><linearGradient id="ci3" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#06b6d4"/><stop offset="1" stop-color="#10b981"/></linearGradient></defs></svg>
+            </div>
+            <h3>コンピュータビジョン</h3>
+            <p>画像・動画認識AIで製造ライン品質検査、セキュリティ監視、小売分析など幅広い用途に対応します。</p>
+            <ul class="card-list">
+              <li>製品外観検査の自動化</li>
+              <li>顔認証・人物追跡システム</li>
+              <li>医療画像診断支援</li>
+            </ul>
+            <a href="#contact" class="card-link">詳しく見る →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CLOUD CONSULTING ===== -->
+  <section id="cloud" class="section section-alt">
+    <canvas id="cloud-canvas" class="section-canvas"></canvas>
+    <div class="container">
+      <div class="split-layout">
+        <div class="split-visual">
+          <canvas id="cloud-3d" width="600" height="500"></canvas>
+        </div>
+        <div class="split-content">
+          <div class="section-tag">02 — Cloud Consulting</div>
+          <h2 class="section-title">クラウドで実現する<br/><span class="gradient-text">スケーラブルな未来</span></h2>
+          <p class="section-desc">AWS・Azure・GCPのマルチクラウド戦略から移行支援、コスト最適化まで、クラウドジャーニーの全てをサポートします。</p>
+
+          <div class="feature-list">
+            <div class="feature-item">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999A5.002 5.002 0 003 9.3" stroke="url(#fi1)" stroke-width="1.5" stroke-linecap="round"/><defs><linearGradient id="fi1" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs></svg>
+              </div>
+              <div>
+                <h4>クラウド移行戦略</h4>
+                <p>オンプレミスからクラウドへの安全・確実な移行計画を策定し、ダウンタイムゼロの移行を実現します。</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="url(#fi2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="fi2" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs></svg>
+              </div>
+              <div>
+                <h4>マルチクラウド最適化</h4>
+                <p>AWS・Azure・GCPを組み合わせたベストオブブリードアーキテクチャでコストとパフォーマンスを最大化します。</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="url(#fi3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><defs><linearGradient id="fi3" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#06b6d4"/><stop offset="1" stop-color="#10b981"/></linearGradient></defs></svg>
+              </div>
+              <div>
+                <h4>セキュリティ＆コンプライアンス</h4>
+                <p>クラウドセキュリティのベストプラクティスに基づき、ISO/IEC 27001・SOC2等の認証取得もサポートします。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="cloud-logos">
+            <div class="cloud-logo aws">AWS</div>
+            <div class="cloud-logo azure">Azure</div>
+            <div class="cloud-logo gcp">GCP</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== MANAGED SERVICE ===== -->
+  <section id="managed" class="section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">03 — Managed Service</div>
+        <h2 class="section-title">24/7 監視・運用で<br/><span class="gradient-text">安心のインフラ管理</span></h2>
+        <p class="section-desc">インフラの運用管理をスホに委託することで、コア事業に集中できる環境を実現。プロアクティブな監視でシステム障害を未然に防ぎます。</p>
+      </div>
+
+      <div class="managed-dashboard">
+        <div class="dashboard-header">
+          <span class="dash-dot green"></span>
+          <span class="dash-dot yellow"></span>
+          <span class="dash-dot red"></span>
+          <span class="dash-title">SUHO Monitoring Dashboard</span>
+          <span class="dash-status"><span class="pulse-dot"></span> All Systems Operational</span>
+        </div>
+        <div class="dashboard-body">
+          <div class="dash-metric">
+            <span class="metric-label">CPU Usage</span>
+            <div class="metric-bar"><div class="metric-fill" style="--w:23%"></div></div>
+            <span class="metric-val">23%</span>
+          </div>
+          <div class="dash-metric">
+            <span class="metric-label">Memory</span>
+            <div class="metric-bar"><div class="metric-fill" style="--w:61%"></div></div>
+            <span class="metric-val">61%</span>
+          </div>
+          <div class="dash-metric">
+            <span class="metric-label">Network I/O</span>
+            <div class="metric-bar"><div class="metric-fill green" style="--w:45%"></div></div>
+            <span class="metric-val">45%</span>
+          </div>
+          <div class="dash-metric">
+            <span class="metric-label">Storage</span>
+            <div class="metric-bar"><div class="metric-fill yellow" style="--w:38%"></div></div>
+            <span class="metric-val">38%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="managed-features">
+        <div class="mf-card">
+          <div class="mf-num">01</div>
+          <h3>24/7 監視体制</h3>
+          <p>専任チームが365日24時間体制でシステムを監視。平均検知時間2分以内でインシデントに対応します。</p>
+        </div>
+        <div class="mf-card">
+          <div class="mf-num">02</div>
+          <h3>自動化運用</h3>
+          <p>AIOpsを活用した自動スケーリング・自動修復により、人的ミスをゼロに近づけ、安定稼働を実現します。</p>
+        </div>
+        <div class="mf-card">
+          <div class="mf-num">03</div>
+          <h3>コスト最適化</h3>
+          <p>リソース使用状況を継続的に分析し、無駄なコストを削減。平均30%のクラウドコスト削減を実現します。</p>
+        </div>
+        <div class="mf-card">
+          <div class="mf-num">04</div>
+          <h3>セキュリティ対策</h3>
+          <p>SOC（セキュリティオペレーションセンター）との連携により、サイバー脅威をリアルタイムで検知・遮断します。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PRODUCTS & SOLUTIONS ===== -->
+  <section id="products" class="section section-alt">
+    <canvas id="products-canvas" class="section-canvas"></canvas>
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">04 — Security &amp; Products</div>
+        <h2 class="section-title">セキュリティと<br/><span class="gradient-text">プロダクト＆ソリューション</span></h2>
+        <p class="section-desc">ゼロトラストセキュリティから業界特化プロダクトまで、スホが独自開発したソリューションとパートナー製品であらゆる課題に対応します。</p>
+      </div>
+
+      <div class="products-tabs">
+        <div class="tab-nav">
+          <button class="tab-btn active" data-tab="platform">プラットフォーム</button>
+          <button class="tab-btn" data-tab="industry">業界別ソリューション</button>
+          <button class="tab-btn" data-tab="partner">パートナー製品</button>
+        </div>
+
+        <div class="tab-content active" data-tab="platform">
+          <div class="products-grid">
+            <div class="product-card">
+              <div class="product-glow"></div>
+              <div class="product-icon">⚡</div>
+              <h3>SUHO DataPlatform</h3>
+              <p>企業データを一元管理するクラウドネイティブなデータプラットフォーム。リアルタイム分析からMLまで対応。</p>
+              <div class="product-tags">
+                <span>データ基盤</span><span>リアルタイム分析</span><span>ML Pipeline</span>
+              </div>
+            </div>
+            <div class="product-card">
+              <div class="product-glow"></div>
+              <div class="product-icon">🛡️</div>
+              <h3>SUHO SecureEdge</h3>
+              <p>ゼロトラストセキュリティモデルに基づいた包括的なセキュリティプラットフォーム。クラウド・オンプレ両対応。</p>
+              <div class="product-tags">
+                <span>ゼロトラスト</span><span>SIEM</span><span>SOC連携</span>
+              </div>
+            </div>
+            <div class="product-card">
+              <div class="product-glow"></div>
+              <div class="product-icon">🤖</div>
+              <h3>SUHO AI Studio</h3>
+              <p>ノーコード/ローコードでAIモデルを開発・デプロイできるMLOpsプラットフォーム。専門知識不要で始められます。</p>
+              <div class="product-tags">
+                <span>MLOps</span><span>ノーコードAI</span><span>自動学習</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-content" data-tab="industry">
+          <div class="products-grid">
+            <div class="product-card">
+              <div class="product-glow"></div>
+              <div class="product-icon">🏥</div>
+              <h3>医療・ヘルスケア</h3>
+              <p>電子カルテ連携AIから医療画像診断支援まで、医療DXを包括的にサポートします。</p>
+              <div class="product-tags">
+                <span>電子カルテ</span><span>診断支援AI</span><span>HIPAA対応</span>
+              </div>
+            </div>
+            <div class="product-card">
+              <div class="product-glow"></div>
+              <div class="product-icon">🏭</div>
+              <h3>製造業</h3>
+              <p>スマートファクトリー実現に向けたIoT基盤とAIによる品質管理・予知保全ソリューション。</p>
+              <div class="product-tags">
+                <span>スマートファクトリー</span><span>予知保全</span><span>IoT</span>
+              </div>
+            </div>
+            <div class="product-card">
+              <div class="product-glow"></div>
+              <div class="product-icon">🏦</div>
+              <h3>金融・フィンテック</h3>
+              <p>不正検知AIからリスク分析まで、金融規制に準拠したセキュアなクラウドソリューションを提供します。</p>
+              <div class="product-tags">
+                <span>不正検知</span><span>リスク分析</span><span>FSA対応</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-content" data-tab="partner">
+          <div class="partner-logos-grid">
+            <div class="partner-item">
+              <span>Microsoft</span><small>Gold Partner</small>
+            </div>
+            <div class="partner-item">
+              <span>AWS</span><small>Advanced Tier</small>
+            </div>
+            <div class="partner-item">
+              <span>Google Cloud</span><small>Premier Partner</small>
+            </div>
+            <div class="partner-item">
+              <span>Salesforce</span><small>Consulting Partner</small>
+            </div>
+            <div class="partner-item">
+              <span>ServiceNow</span><small>Technology Partner</small>
+            </div>
+            <div class="partner-item">
+              <span>Datadog</span><small>Technology Partner</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ABOUT ===== -->
+  <section id="about" class="section">
+    <canvas id="about-canvas" class="section-canvas"></canvas>
+    <div class="container">
+      <div class="section-tag">05 — About</div>
+      <div class="about-layout">
+        <div class="about-content">
+          <h2 class="section-title">テクノロジーで<br/><span class="gradient-text">社会を変える</span></h2>
+          <p class="about-lead">株式会社スホは、AIとクラウドを核に、日本のデジタル変革をリードするテクノロジーカンパニーです。</p>
+          <p class="about-body">2009年の創業以来、大手製造業から医療・金融機関まで200社以上のデジタルトランスフォーメーションを支援してまいりました。単なるITベンダーではなく、お客様の真のビジネスパートナーとして、課題の本質を見極め最適なソリューションを提供し続けています。</p>
+          <div class="about-values">
+            <div class="value-item">
+              <span class="value-icon">🎯</span>
+              <div>
+                <h4>Innovation First</h4>
+                <p>常に最先端技術を追求し、ビジネスに真の価値をもたらします</p>
+              </div>
+            </div>
+            <div class="value-item">
+              <span class="value-icon">🤝</span>
+              <div>
+                <h4>True Partnership</h4>
+                <p>お客様の成功が私たちの成功。長期的なパートナーシップを重視します</p>
+              </div>
+            </div>
+            <div class="value-item">
+              <span class="value-icon">🌏</span>
+              <div>
+                <h4>Global Mindset</h4>
+                <p>日本発のグローバルスタンダードを目指し、世界に挑戦します</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="about-stats-panel">
+          <div class="about-stat">
+            <span class="as-num gradient-text" data-target="200">0</span>
+            <span class="as-sup">+</span>
+            <p>導入企業数</p>
+          </div>
+          <div class="about-stat">
+            <span class="as-num gradient-text" data-target="15">0</span>
+            <span class="as-sup">年</span>
+            <p>業界実績</p>
+          </div>
+          <div class="about-stat">
+            <span class="as-num gradient-text" data-target="120">0</span>
+            <span class="as-sup">名</span>
+            <p>専門エンジニア</p>
+          </div>
+          <div class="about-stat">
+            <span class="as-num gradient-text" data-target="98">0</span>
+            <span class="as-sup">%</span>
+            <p>顧客継続率</p>
+          </div>
+          <div class="about-team">
+            <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&q=80" alt="team" loading="lazy"/>
+            <div class="team-overlay">
+              <span>私たちのチーム</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CONTACT ===== -->
+  <section id="contact" class="section section-contact">
+    <div class="contact-bg">
+      <canvas id="contact-canvas"></canvas>
+    </div>
+    <div class="container">
+      <div class="contact-inner">
+        <div class="contact-text">
+          <div class="section-tag">Contact</div>
+          <h2 class="section-title">さあ、始めましょう</h2>
+          <p>ビジネスのデジタル変革について、<br/>まずはお気軽にご相談ください。</p>
+          <div class="contact-info">
+            <a href="mailto:info@suhojapan.com">
+              <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M2 8l10 6 10-6" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+              info@suhojapan.com
+            </a>
+            <a href="tel:+81-3-0000-0000">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.09 12 19.79 19.79 0 01.12 3.38 2 2 0 012.11 1.25h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 9.17a16 16 0 006.29 6.29l1.24-1.24a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7a2 2 0 011.72 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              03-0000-0000
+            </a>
+          </div>
+        </div>
+        <form class="contact-form" id="contactForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label>お名前</label>
+              <input type="text" placeholder="山田 太郎" required />
+            </div>
+            <div class="form-group">
+              <label>会社名</label>
+              <input type="text" placeholder="株式会社○○" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>メールアドレス</label>
+            <input type="email" placeholder="info@example.com" required />
+          </div>
+          <div class="form-group">
+            <label>ご相談内容</label>
+            <select>
+              <option value="">サービスを選択</option>
+              <option>AI Service</option>
+              <option>Cloud Consulting</option>
+              <option>Managed Service</option>
+              <option>Security &amp; Products</option>
+              <option>その他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>メッセージ</label>
+            <textarea rows="4" placeholder="ご質問・ご相談内容をお書きください"></textarea>
+          </div>
+          <button type="submit" class="btn-primary form-submit">
+            <span>送信する</span>
+            <svg viewBox="0 0 20 20" fill="none"><path d="M3 10h14M10 4l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="nav-logo" style="margin-bottom:1rem">
+            <img src="assets/suho-logo.png" alt="SUHO" class="nav-logo-img" />
+            <span class="footer-logo-text">スホ <em>SUHO</em></span>
+          </div>
+          <p>AIとクラウドの力で<br/>日本のビジネスを変革する</p>
+          <div class="social-links">
+            <a href="#" aria-label="X">𝕏</a>
+            <a href="#" aria-label="LinkedIn">in</a>
+            <a href="#" aria-label="GitHub">⌥</a>
+          </div>
+        </div>
+        <div class="footer-links">
+          <h4>Services</h4>
+          <ul>
+            <li><a href="#ai-service">AI Service</a></li>
+            <li><a href="#cloud">Cloud Consulting</a></li>
+            <li><a href="#managed">Managed Service</a></li>
+            <li><a href="#products">Security &amp; Products</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="#about">About Us</a></li>
+            <li><a href="recruit.html">採用情報</a></li>
+            <li><a href="news.html">ニュース</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="#">プライバシーポリシー</a></li>
+            <li><a href="#">利用規約</a></li>
+            <li><a href="#">セキュリティポリシー</a></li>
+            <li><a href="#contact">お問い合わせ</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2024 株式会社スホ (Suho Corporation). All rights reserved.</p>
+        <p>東京都港区</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
