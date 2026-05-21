@@ -294,282 +294,247 @@ document.getElementById('contactForm').addEventListener('submit', e => {
   animate();
 })();
 
-// ── CLOUD: Isometric Cube Network (cloud image style) ─
+// ── CLOUD: Isometric Cube Network ────────────────────
 (function initCloud() {
   const canvas = document.getElementById('cloud-3d');
   if (!canvas) return;
 
   const DPR = Math.min(devicePixelRatio, 2);
-  let W = canvas.offsetWidth  || 560;
-  let H = canvas.offsetHeight || 480;
+  let W = canvas.offsetWidth  || 600;
+  let H = canvas.offsetHeight || 520;
   canvas.width  = W * DPR;
   canvas.height = H * DPR;
   const ctx = canvas.getContext('2d');
   ctx.scale(DPR, DPR);
 
-  /* ══ Isometric projection ══ */
-  // X right-forward, Y up, Z left-forward  →  screen
-  function iso(x, y, z) {
-    return {
-      sx:  (x - z) * 0.866,
-      sy: -(y) + (x + z) * 0.5,
-    };
-  }
+  /* ══ Proper isometric cube ══
+     Anchor (cx,cy) = visual center of cube
+     s = half-width of the horizontal diamond on top        */
+  function isoCube(cx, cy, s, type) {
+    const H2 = s * 0.5;   // height of each side face = s*0.5 (half the diamond)
+    // 7 key screen points
+    const t  = [cx,       cy - s];          // top peak
+    const ml = [cx - s,   cy - H2];         // mid-left
+    const mr = [cx + s,   cy - H2];         // mid-right
+    const fc = [cx,       cy];              // front-center (equator)
+    const bl = [cx - s,   cy + H2];         // bottom-left
+    const br = [cx + s,   cy + H2];         // bottom-right
+    const b  = [cx,       cy + s];          // bottom peak
 
-  /* ══ Draw one isometric cube ══
-     cx,cy  = screen anchor (bottom-center of cube footprint)
-     s      = half-size in pixels
-     type   = 'metal'|'glass'|'concrete'
-     glow   = bool  */
-  function cube(cx, cy, s, type, glow) {
-    // 8 corners in iso-grid coords [x,y,z] (y=up)
-    const T = s * 0.95; // top face height
-    const p = (x,y,z) => { const r=iso(x,y,z); return [cx+r.sx*s, cy+r.sy*s]; };
+    const fill  = { r:0, g:0, b:0 };
+    let topA, leftA, rightA, edgeCol;
 
-    // -- color palettes --
-    const pal = {
-      metal:    { top:'rgba(185,195,210,0.95)', left:'rgba(120,132,148,0.95)', right:'rgba(95,107,122,0.95)',  edge:'rgba(160,180,200,0.7)' },
-      glass:    { top:'rgba(130,185,230,0.45)', left:'rgba(80,140,200,0.4)',   right:'rgba(60,115,180,0.4)',   edge:'rgba(100,200,240,0.8)' },
-      concrete: { top:'rgba(90,100,115,0.9)',   left:'rgba(58,65,78,0.9)',     right:'rgba(44,50,62,0.9)',     edge:'rgba(80,110,140,0.5)'  },
-    };
-    const c = pal[type] || pal.metal;
-    const lw = 0.8;
+    if (type === 'metal') {
+      topA   = 'rgba(175,188,205,0.96)';
+      leftA  = 'rgba(100,115,132,0.96)';
+      rightA = 'rgba(78,92,108,0.96)';
+      edgeCol= 'rgba(150,175,200,0.75)';
+    } else if (type === 'glass') {
+      topA   = 'rgba(110,175,225,0.38)';
+      leftA  = 'rgba(65,125,195,0.32)';
+      rightA = 'rgba(50,105,178,0.30)';
+      edgeCol= 'rgba(80,190,235,0.85)';
+    } else { // concrete
+      topA   = 'rgba(82,93,108,0.95)';
+      leftA  = 'rgba(52,60,73,0.95)';
+      rightA = 'rgba(40,48,60,0.95)';
+      edgeCol= 'rgba(70,100,130,0.55)';
+    }
 
-    // top face: corners (0,1,0),(1,1,0),(1,1,1),(0,1,1)
-    const tl=p(0,1,0), tr=p(1,1,0), br=p(1,1,1), bl=p(0,1,1);
+    ctx.lineWidth = 0.9;
+    ctx.strokeStyle = edgeCol;
+
+    // ── Top face (diamond) ──
+    if (type === 'glass') {
+      const gTop = ctx.createLinearGradient(t[0], t[1], b[0], b[1]);
+      gTop.addColorStop(0, 'rgba(140,210,255,0.5)');
+      gTop.addColorStop(1, 'rgba(70,140,220,0.30)');
+      ctx.fillStyle = gTop;
+    } else if (type === 'metal') {
+      const gTop = ctx.createLinearGradient(ml[0], ml[1], mr[0], mr[1]);
+      gTop.addColorStop(0, 'rgba(155,170,190,0.97)');
+      gTop.addColorStop(0.5,'rgba(200,212,225,0.97)');
+      gTop.addColorStop(1, 'rgba(155,170,190,0.97)');
+      ctx.fillStyle = gTop;
+    } else {
+      ctx.fillStyle = topA;
+    }
     ctx.beginPath();
-    ctx.moveTo(...tl);ctx.lineTo(...tr);ctx.lineTo(...br);ctx.lineTo(...bl);ctx.closePath();
-    if(type==='glass'){
-      const grd=ctx.createLinearGradient(tl[0],tl[1],br[0],br[1]);
-      grd.addColorStop(0,'rgba(160,220,255,0.55)');grd.addColorStop(1,'rgba(80,150,220,0.35)');
-      ctx.fillStyle=grd;
-    } else { ctx.fillStyle=c.top; }
-    ctx.strokeStyle=c.edge; ctx.lineWidth=lw; ctx.fill(); ctx.stroke();
+    ctx.moveTo(...t); ctx.lineTo(...mr); ctx.lineTo(...fc); ctx.lineTo(...ml);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
 
-    // left face: (0,0,0),(0,1,0),(0,1,1),(0,0,1)
-    const ll0=p(0,0,0),ll1=p(0,1,0),ll2=p(0,1,1),ll3=p(0,0,1);
+    // ── Left face ──
+    if (type === 'glass') {
+      const gL = ctx.createLinearGradient(ml[0], ml[1], bl[0], bl[1]);
+      gL.addColorStop(0, 'rgba(65,130,200,0.35)'); gL.addColorStop(1, 'rgba(40,95,170,0.25)');
+      ctx.fillStyle = gL;
+    } else { ctx.fillStyle = leftA; }
     ctx.beginPath();
-    ctx.moveTo(...ll0);ctx.lineTo(...ll1);ctx.lineTo(...ll2);ctx.lineTo(...ll3);ctx.closePath();
-    if(type==='glass'){
-      const grd=ctx.createLinearGradient(ll0[0],ll0[1],ll2[0],ll2[1]);
-      grd.addColorStop(0,'rgba(70,130,200,0.38)');grd.addColorStop(1,'rgba(40,90,170,0.28)');
-      ctx.fillStyle=grd;
-    } else { ctx.fillStyle=c.left; }
-    ctx.strokeStyle=c.edge; ctx.lineWidth=lw; ctx.fill(); ctx.stroke();
+    ctx.moveTo(...ml); ctx.lineTo(...fc); ctx.lineTo(...b); ctx.lineTo(...bl);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
 
-    // right face: (1,0,0),(1,1,0),(1,1,1),(1,0,1)
-    const rl0=p(1,0,0),rl1=p(1,1,0),rl2=p(1,1,1),rl3=p(1,0,1);
+    // ── Right face ──
+    if (type === 'glass') {
+      const gR = ctx.createLinearGradient(mr[0], mr[1], br[0], br[1]);
+      gR.addColorStop(0, 'rgba(55,115,185,0.32)'); gR.addColorStop(1, 'rgba(35,85,160,0.22)');
+      ctx.fillStyle = gR;
+    } else { ctx.fillStyle = rightA; }
     ctx.beginPath();
-    ctx.moveTo(...rl0);ctx.lineTo(...rl1);ctx.lineTo(...rl2);ctx.lineTo(...rl3);ctx.closePath();
-    if(type==='glass'){
-      const grd=ctx.createLinearGradient(rl0[0],rl0[1],rl2[0],rl2[1]);
-      grd.addColorStop(0,'rgba(60,120,190,0.35)');grd.addColorStop(1,'rgba(35,80,160,0.25)');
-      ctx.fillStyle=grd;
-    } else { ctx.fillStyle=c.right; }
-    ctx.strokeStyle=c.edge; ctx.lineWidth=lw; ctx.fill(); ctx.stroke();
+    ctx.moveTo(...mr); ctx.lineTo(...br); ctx.lineTo(...b); ctx.lineTo(...fc);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
 
-    // inner glow for glass
-    if(type==='glass'||glow){
-      const center=p(0.5,0.5,0.5);
-      const gr=ctx.createRadialGradient(center[0],center[1]-s*0.2,0,center[0],center[1],s*0.9);
-      gr.addColorStop(0,'rgba(80,200,255,0.22)');
-      gr.addColorStop(1,'rgba(0,100,200,0)');
-      ctx.fillStyle=gr;
+    // ── Metal top highlight ──
+    if (type === 'metal') {
+      ctx.beginPath(); ctx.moveTo(...t); ctx.lineTo(...mr);
+      ctx.strokeStyle = 'rgba(230,240,252,0.65)'; ctx.lineWidth = 1.3; ctx.stroke();
+    }
+    // ── Glass inner glow ──
+    if (type === 'glass') {
+      const gr = ctx.createRadialGradient(cx, cy - s * 0.3, 0, cx, cy - s * 0.3, s * 1.1);
+      gr.addColorStop(0, 'rgba(60,190,255,0.25)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = gr;
       ctx.beginPath();
-      ctx.moveTo(...tl);ctx.lineTo(...tr);ctx.lineTo(...br);ctx.lineTo(...bl);ctx.closePath();
-      ctx.fill();
+      ctx.moveTo(...t); ctx.lineTo(...mr); ctx.lineTo(...fc); ctx.lineTo(...ml);
+      ctx.closePath(); ctx.fill();
     }
-
-    // edge highlight line on top
-    if(type==='metal'){
-      ctx.beginPath();ctx.moveTo(...tl);ctx.lineTo(...tr);
-      ctx.strokeStyle='rgba(220,230,245,0.6)';ctx.lineWidth=1.2;ctx.stroke();
-    }
-
-    return p(0.5,1,0.5); // top center point for icon placement
   }
 
-  /* ══ Cloud chip icon on top of cube ══ */
-  function drawCloudChip(cx,cy,s){
-    const f=s*0.55;
-    ctx.save();
-    ctx.translate(cx,cy-s*0.12);
-    // chip body
-    const cw=f*0.7, ch=f*0.45;
-    const rnd=ctx.createLinearGradient(-cw/2,-ch/2,cw/2,ch/2);
-    rnd.addColorStop(0,'rgba(120,160,200,0.9)');rnd.addColorStop(1,'rgba(70,110,160,0.9)');
-    ctx.fillStyle=rnd;
-    ctx.beginPath();ctx.roundRect(-cw/2,-ch/2,cw,ch,f*0.06);ctx.fill();
-    ctx.strokeStyle='rgba(100,180,220,0.8)';ctx.lineWidth=0.8;ctx.stroke();
-    // circuit lines
-    ctx.strokeStyle='rgba(140,210,240,0.7)';ctx.lineWidth=0.6;
-    [-cw*0.25,0,cw*0.25].forEach(x=>{
-      ctx.beginPath();ctx.moveTo(x,-ch/2-f*0.08);ctx.lineTo(x,-ch/2);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(x,ch/2);ctx.lineTo(x,ch/2+f*0.08);ctx.stroke();
-    });
-    // cloud icon
-    ctx.fillStyle='rgba(160,220,255,0.9)';
-    ctx.beginPath();ctx.arc(0,-f*0.04,f*0.12,Math.PI,0);
-    ctx.arc(f*0.1,-f*0.06,f*0.09,Math.PI,0);
-    ctx.arc(-f*0.08,-f*0.06,f*0.08,Math.PI,0);
-    ctx.closePath();ctx.fill();
-    ctx.restore();
-  }
-
-  /* ══ Cloud icon ══ */
-  function drawCloudIcon(cx,cy,s,alpha){
-    const f=s*0.4;
-    ctx.save();ctx.globalAlpha=alpha||0.9;ctx.translate(cx,cy-s*0.08);
-    ctx.strokeStyle='rgba(100,190,255,0.9)';ctx.lineWidth=f*0.12;
-    ctx.lineCap='round';
+  /* ══ Cloud icon (stroke) ══ */
+  function cloudIcon(cx, cy, r, alpha) {
+    ctx.save(); ctx.globalAlpha = alpha || 0.85;
+    ctx.strokeStyle = 'rgba(90,185,255,0.95)';
+    ctx.lineWidth = r * 0.13; ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.arc(0,-f*0.05,f*0.32,Math.PI*0.95,Math.PI*0.05);
-    ctx.arc(f*0.28,-f*0.12,f*0.2,Math.PI*0.85,-Math.PI*0.1);
-    ctx.arc(-f*0.2,-f*0.1,f*0.18,Math.PI*1.1,Math.PI*0.05,true);
-    ctx.stroke();
+    ctx.arc(cx,      cy - r * 0.05, r * 0.30, Math.PI, 0);
+    ctx.arc(cx + r * 0.24, cy - r * 0.14, r * 0.18, Math.PI, -0.1);
+    ctx.arc(cx - r * 0.18, cy - r * 0.12, r * 0.16, Math.PI, 0.1, true);
+    ctx.stroke(); ctx.restore();
+  }
+
+  /* ══ Cloud-chip icon (center cube) ══ */
+  function chipIcon(cx, cy, s) {
+    const f = s * 0.72;
+    ctx.save(); ctx.translate(cx, cy - s * 0.08);
+    const cw = f * 0.65, ch = f * 0.4;
+    const gC = ctx.createLinearGradient(-cw/2,-ch/2,cw/2,ch/2);
+    gC.addColorStop(0,'rgba(110,155,200,0.95)'); gC.addColorStop(1,'rgba(65,105,160,0.95)');
+    ctx.fillStyle = gC;
+    ctx.beginPath(); ctx.roundRect(-cw/2,-ch/2,cw,ch,4); ctx.fill();
+    ctx.strokeStyle='rgba(90,175,220,0.8)'; ctx.lineWidth=0.8; ctx.stroke();
+    // pins
+    ctx.strokeStyle='rgba(120,205,240,0.75)'; ctx.lineWidth=0.7;
+    [-cw*0.25,0,cw*0.25].forEach(x=>{
+      ctx.beginPath();ctx.moveTo(x,-ch/2-5);ctx.lineTo(x,-ch/2);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(x, ch/2); ctx.lineTo(x, ch/2+5);ctx.stroke();
+    });
+    // cloud on chip
+    ctx.fillStyle='rgba(155,220,255,0.95)';
+    ctx.beginPath();
+    ctx.arc(0,-3,f*0.10,Math.PI,0);
+    ctx.arc(f*0.09,-5,f*0.07,Math.PI,0);
+    ctx.arc(-f*0.07,-5,f*0.065,Math.PI,0);
+    ctx.closePath(); ctx.fill();
     ctx.restore();
   }
 
-  /* ══ Cable bundle connection ══ */
-  function drawCable(x1,y1,x2,y2,t,idx){
-    const LINES=4;
-    const spread=3.5;
-    const dx=x2-x1, dy=y2-y1;
-    const len=Math.hypot(dx,dy);
-    const nx=-dy/len, ny=dx/len; // normal
+  /* ══ Cable bundle ══ */
+  function cable(x1,y1,x2,y2,t,idx){
+    const N=4, sp=3.2;
+    const dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy);
+    const nx=-dy/len,ny=dx/len;
+    const mx=(x1+x2)/2,my=(y1+y2)/2;
+    const cpx=mx+nx*len*0.05,cpy=my+ny*len*0.05;
 
-    for(let i=0;i<LINES;i++){
-      const off=(i-(LINES-1)/2)*spread;
-      const ox=nx*off, oy=ny*off;
-      // slight curve via quadratic bezier
-      const mx=(x1+x2)/2+nx*len*0.06, my=(y1+y2)/2+ny*len*0.06;
+    // outer glow
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.quadraticCurveTo(cpx,cpy,x2,y2);
+    ctx.strokeStyle='rgba(0,195,218,0.07)';ctx.lineWidth=16;ctx.stroke();
+
+    for(let i=0;i<N;i++){
+      const off=(i-(N-1)/2)*sp;
+      const ox=nx*off,oy=ny*off;
       ctx.beginPath();
       ctx.moveTo(x1+ox,y1+oy);
-      ctx.quadraticCurveTo(mx+ox,my+oy,x2+ox,y2+oy);
-      const bright=i===Math.floor(LINES/2);
+      ctx.quadraticCurveTo(cpx+ox,cpy+oy,x2+ox,y2+oy);
+      const center=(i===1||i===2);
       const g=ctx.createLinearGradient(x1,y1,x2,y2);
-      g.addColorStop(0,  `rgba(0,200,220,${bright?0.55:0.2})`);
-      g.addColorStop(0.5,`rgba(6,182,212,${bright?0.75:0.3})`);
-      g.addColorStop(1,  `rgba(0,200,220,${bright?0.55:0.2})`);
-      ctx.strokeStyle=g;
-      ctx.lineWidth=bright?1.5:0.7;
-      ctx.stroke();
+      const a=center?0.7:0.22;
+      g.addColorStop(0,`rgba(0,195,218,${a*0.7})`);
+      g.addColorStop(0.5,`rgba(6,182,212,${a})`);
+      g.addColorStop(1,`rgba(0,195,218,${a*0.7})`);
+      ctx.strokeStyle=g; ctx.lineWidth=center?1.4:0.6; ctx.stroke();
     }
-    // outer glow
-    ctx.beginPath();
-    ctx.moveTo(x1,y1);ctx.quadraticCurveTo((x1+x2)/2,(y1+y2)/2,x2,y2);
-    ctx.strokeStyle=`rgba(0,200,220,0.08)`;ctx.lineWidth=14;ctx.stroke();
-
-    // traveling bead
-    const prog=((t*0.35+idx*0.19)%1+1)%1;
-    const bt=prog, bx=x1+(x2-x1)*bt, by=y1+(y2-y1)*bt;
-    ctx.beginPath();ctx.arc(bx,by,3.5,0,Math.PI*2);
-    const bg2=ctx.createRadialGradient(bx,by,0,bx,by,7);
-    bg2.addColorStop(0,'rgba(200,240,255,0.95)');
-    bg2.addColorStop(0.5,'rgba(0,200,220,0.6)');
-    bg2.addColorStop(1,'rgba(0,180,200,0)');
-    ctx.fillStyle=bg2;ctx.fill();
+    // bead
+    const prog=((t*0.38+idx*0.23)%1+1)%1;
+    const bx=x1+(x2-x1)*prog, by=y1+(y2-y1)*prog;
+    const bg=ctx.createRadialGradient(bx,by,0,bx,by,7);
+    bg.addColorStop(0,'rgba(200,242,255,0.98)');
+    bg.addColorStop(0.45,'rgba(0,200,222,0.65)');
+    bg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.beginPath();ctx.arc(bx,by,4,0,Math.PI*2);ctx.fillStyle=bg;ctx.fill();
   }
 
   /* ══ Node dot ══ */
-  function nodeDot(x,y,r){
-    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
-    const g=ctx.createRadialGradient(x,y,0,x,y,r*2.5);
-    g.addColorStop(0,'rgba(180,230,255,0.95)');
-    g.addColorStop(0.6,'rgba(0,200,220,0.55)');
-    g.addColorStop(1,'rgba(0,180,200,0)');
-    ctx.fillStyle=g;ctx.fill();
+  function dot(x,y,r){
+    const g=ctx.createRadialGradient(x,y,0,x,y,r*2.8);
+    g.addColorStop(0,'rgba(190,238,255,0.98)');
+    g.addColorStop(0.5,'rgba(0,195,218,0.55)');
+    g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
   }
 
-  /* ══ Layout ══
-     9 cubes: 1 center + 8 around in ring (like image)
-     Screen coords relative to canvas center              */
-  const R = 148; // ring radius
-  const RING_CUBES = [
-    // 8 positions around ring, top = index 0, clockwise
-    // angle offsets for isometric look (top-center first)
-    { a: -90, type:'concrete', icon:''       },  // top
-    { a: -35, type:'glass',    icon:'cloud'  },  // top-right
-    { a:  35, type:'concrete', icon:''       },  // right
-    { a:  90, type:'glass',    icon:'circuit'},  // bottom-right
-    { a: 140, type:'concrete', icon:''       },  // bottom
-    { a:-140, type:'glass',    icon:'glow'   },  // bottom-left
-    { a:-100, type:'concrete', icon:''       },  // left (slightly up)
-    { a: -55, type:'glass',    icon:'cloud'  },  // top-left-ish → adjust
-  ];
-  // Re-map to clean 8-way ring
-  const ANGLES = [-90, -45, 0, 45, 90, 135, 180, -135];
+  /* ══ Scene layout ══ */
+  const ANGLES = [-90,-45,0,45,90,135,180,-135];
   const TYPES  = ['concrete','glass','concrete','glass','concrete','glass','concrete','glass'];
-  const ICONS  = ['',        'cloud','',        'circuit','',      'glow', '',        'cloud'];
+  const ICONS  = [false,true,false,true,false,true,false,false];
 
-  let animT = 0;
+  let T = 0;
 
-  function render() {
-    ctx.clearRect(0, 0, W, H);
+  function render(){
+    ctx.clearRect(0,0,W,H);
 
-    const cx = W * 0.5;
-    const cy = H * 0.52;
+    const cx=W*0.5, cy=H*0.52;
+    const R  = Math.min(W,H) * 0.33;   // ring radius — responsive
+    const RS = Math.min(W,H) * 0.088;  // ring cube half-size
+    const CS = Math.min(W,H) * 0.115;  // center cube half-size
 
-    // subtle background radial
-    const bg = ctx.createRadialGradient(cx,cy,0,cx,cy,W*0.55);
-    bg.addColorStop(0,'rgba(10,25,60,0.12)');
-    bg.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
-
-    // compute ring cube positions (with float)
-    const ringPos = ANGLES.map((a,i)=>{
-      const rad = a * Math.PI/180;
-      const float = Math.sin(animT*0.65+i*0.8)*5;
+    // ring positions
+    const ring = ANGLES.map((a,i)=>{
+      const rad=a*Math.PI/180;
+      const fl=Math.sin(T*0.65+i*0.8)*6;
       return {
-        x: cx + Math.cos(rad)*R,
-        y: cy + Math.sin(rad)*R*0.55 + float,  // *0.55 = isometric squash
-        type: TYPES[i],
-        icon: ICONS[i],
-        fo: i,
+        x: cx+Math.cos(rad)*R,
+        y: cy+Math.sin(rad)*R*0.52+fl,
+        type:TYPES[i], icon:ICONS[i]
       };
     });
-    const centerFloat = Math.sin(animT*0.5)*4;
-    const centerPos = { x:cx, y:cy+centerFloat };
+    const cfl=Math.sin(T*0.5)*5;
+    const cpx=cx, cpy=cy+cfl;
 
-    // Draw connections first (behind cubes)
-    ringPos.forEach((rp,i)=>{
-      drawCable(centerPos.x, centerPos.y, rp.x, rp.y, animT, i);
+    // 1. cables (behind everything)
+    ring.forEach((r,i)=>cable(cpx,cpy,r.x,r.y,T,i));
+
+    // 2. endpoint dots
+    ring.forEach(r=>dot(r.x,r.y,4.5));
+    dot(cpx,cpy,6);
+
+    // 3. ring cubes — back-to-front (sort by y)
+    [...ring].sort((a,b)=>a.y-b.y).forEach(r=>{
+      isoCube(r.x, r.y, RS, r.type);
+      if(r.icon) cloudIcon(r.x, r.y-RS*0.55, RS*0.55);
     });
 
-    // Node dots on connection endpoints
-    ringPos.forEach(rp => nodeDot(rp.x, rp.y-2, 4));
-    nodeDot(centerPos.x, centerPos.y-4, 5.5);
+    // 4. center cube on top
+    isoCube(cpx, cpy, CS, 'metal');
+    chipIcon(cpx, cpy, CS);
 
-    // Draw ring cubes (sorted by y for depth)
-    const sorted = [...ringPos].sort((a,b)=>a.y-b.y);
-    sorted.forEach(rp=>{
-      const s = W < 400 ? 28 : 32;
-      cube(rp.x, rp.y, s, rp.type, rp.type==='glass');
-      if(rp.icon==='cloud')   drawCloudIcon(rp.x, rp.y-s*0.55, s, 0.85);
-      if(rp.icon==='glow'){
-        // bright glow glass
-        const g=ctx.createRadialGradient(rp.x,rp.y-s*0.3,0,rp.x,rp.y-s*0.3,s*0.7);
-        g.addColorStop(0,'rgba(100,210,255,0.35)');g.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=g;ctx.beginPath();ctx.arc(rp.x,rp.y-s*0.3,s*0.7,0,Math.PI*2);ctx.fill();
-      }
-    });
-
-    // Draw center cube (larger, on top of connections)
-    const CS = W < 400 ? 40 : 46;
-    cube(centerPos.x, centerPos.y, CS, 'metal', false);
-    drawCloudChip(centerPos.x, centerPos.y - CS * 0.6, CS);
-
-    animT += 0.013;
+    T+=0.013;
     requestAnimationFrame(render);
   }
   render();
 
-  window.addEventListener('resize', () => {
-    W = canvas.offsetWidth || 560;
-    H = canvas.offsetHeight || 480;
-    canvas.width  = W * DPR;
-    canvas.height = H * DPR;
-    ctx.scale(DPR, DPR);
+  window.addEventListener('resize',()=>{
+    W=canvas.offsetWidth||600; H=canvas.offsetHeight||520;
+    canvas.width=W*DPR; canvas.height=H*DPR; ctx.scale(DPR,DPR);
   });
 })();
 
