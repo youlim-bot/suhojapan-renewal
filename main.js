@@ -520,12 +520,10 @@ document.getElementById('contactForm').addEventListener('submit', e => {
     // 3. ring cubes — back-to-front (sort by y)
     [...ring].sort((a,b)=>a.y-b.y).forEach(r=>{
       isoCube(r.x, r.y, RS, r.type);
-      if(r.icon) cloudIcon(r.x, r.y-RS*0.55, RS*0.55);
     });
 
     // 4. center cube on top
     isoCube(cpx, cpy, CS, 'metal');
-    chipIcon(cpx, cpy, CS);
 
     T+=0.013;
     requestAnimationFrame(render);
