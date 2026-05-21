@@ -153,6 +153,22 @@ p{color:#94a3b8;margin:6px 0}.badge{display:inline-block;background:rgba(16,185,
         return json({ success: true, count: seeded.length });
       }
 
+      /* ── GET /content/:page ───────────────────── */
+      if (/^\/content\/[^/]+$/.test(path) && method === 'GET') {
+        const page = path.split('/')[2];
+        const raw = await env.NEWS_KV.get(`content:${page}`);
+        return json(raw ? JSON.parse(raw) : {});
+      }
+
+      /* ── PUT /content/:page ───────────────────── */
+      if (/^\/content\/[^/]+$/.test(path) && method === 'PUT') {
+        if (!authed()) return json({ error: 'Unauthorized' }, 401);
+        const page = path.split('/')[2];
+        const body = await request.json();
+        await env.NEWS_KV.put(`content:${page}`, JSON.stringify(body));
+        return json({ success: true });
+      }
+
       return json({ error: 'Not found' }, 404);
     } catch (e) {
       return json({ error: e.message }, 500);

@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SUHO Visual Editor</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f172a;--surface:#1e293b;--surface2:#263348;--border:rgba(255,255,255,.08);
+  --text:#f1f5f9;--muted:#94a3b8;--indigo:#6366f1;--cyan:#06b6d4;--green:#10b981;
+  --red:#ef4444;--yellow:#f59e0b;
+  --grad:linear-gradient(135deg,var(--indigo),var(--cyan));
+  --radius:12px;--sidebar:240px;
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+
+/* ── LOGIN ── */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:48px 40px;width:100%;max-width:440px}
+.login-logo{text-align:center;margin-bottom:32px}
+.login-logo h1{font-size:1.6rem;font-weight:900;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.login-logo p{color:var(--muted);font-size:.875rem;margin-top:6px}
+.login-field{margin-bottom:18px}
+.login-field label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+.login-field input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;color:var(--text);font-size:.9rem;outline:none;transition:border-color .2s}
+.login-field input:focus{border-color:var(--indigo)}
+.login-btn{width:100%;padding:14px;background:var(--grad);border:none;border-radius:10px;color:#fff;font-size:.95rem;font-weight:700;cursor:pointer;margin-top:8px;transition:opacity .2s}
+.login-btn:hover{opacity:.9}
+.login-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5;border-radius:8px;padding:10px 14px;font-size:.85rem;margin-top:12px;display:none}
+
+/* ── EDITOR LAYOUT ── */
+#editor{display:none;flex-direction:column;height:100vh;overflow:hidden}
+/* TOP BAR */
+.topbar{display:flex;align-items:center;gap:0;padding:0 16px;height:56px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;z-index:100}
+.topbar-logo{font-size:1rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-right:20px;white-space:nowrap}
+.page-tabs{display:flex;gap:4px;flex:1}
+.page-tab{padding:7px 16px;border-radius:8px;border:1px solid transparent;background:none;color:var(--muted);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap}
+.page-tab:hover{background:var(--surface2);color:var(--text)}
+.page-tab.active{background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.3);color:var(--indigo)}
+.topbar-actions{display:flex;gap:8px;margin-left:auto}
+.btn-preview{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:.85rem;font-weight:600;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:6px;transition:all .2s}
+.btn-preview:hover{border-color:rgba(99,102,241,.4)}
+.btn-save{padding:8px 20px;border-radius:8px;border:none;background:var(--grad);color:#fff;font-size:.85rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:opacity .2s}
+.btn-save:hover{opacity:.85}
+.btn-save:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── MAIN LAYOUT ── */
+.editor-body{display:flex;flex:1;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.sidebar-header{padding:16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sidebar-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.section-list{flex:1;overflow-y:auto;padding:8px}
+.section-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:all .2s;border:1px solid transparent;margin-bottom:2px}
+.section-item:hover{background:var(--surface2)}
+.section-item.active{background:rgba(99,102,241,.12);border-color:rgba(99,102,241,.25)}
+.section-icon{font-size:1.1rem;flex-shrink:0;width:28px;text-align:center}
+.section-label{font-size:.85rem;font-weight:500;color:var(--muted)}
+.section-item.active .section-label{color:var(--text)}
+.section-modified{width:6px;height:6px;border-radius:50%;background:var(--indigo);margin-left:auto;display:none}
+.section-item.modified .section-modified{display:block}
+.sidebar-footer{padding:12px;border-top:1px solid var(--border);flex-shrink:0}
+.btn-defaults{width:100%;padding:8px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-defaults:hover{background:var(--surface2);color:var(--text)}
+
+/* FORM PANEL */
+.form-panel{flex:1;overflow-y:auto;padding:24px}
+.form-panel::-webkit-scrollbar{width:6px}
+.form-panel::-webkit-scrollbar-track{background:transparent}
+.form-panel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+
+.section-editor{max-width:780px}
+.section-editor-header{margin-bottom:28px}
+.section-editor-title{font-size:1.2rem;font-weight:800;display:flex;align-items:center;gap:10px}
+.section-editor-title .icon{font-size:1.4rem}
+.section-editor-desc{font-size:.85rem;color:var(--muted);margin-top:6px}
+
+/* FIELD GROUPS */
+.field-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.field-card-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--indigo);margin-bottom:16px;display:flex;align-items:center;gap:6px}
+.field-group{margin-bottom:14px}
+.field-group:last-child{margin-bottom:0}
+.field-group label{display:block;font-size:.78rem;font-weight:600;color:var(--muted);margin-bottom:6px}
+.field-group input,.field-group textarea,.field-group select{
+  width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  padding:10px 12px;color:var(--text);font-size:.875rem;outline:none;
+  font-family:inherit;transition:border-color .2s;resize:vertical
+}
+.field-group input:focus,.field-group textarea:focus{border-color:var(--indigo)}
+.field-group textarea{min-height:70px;line-height:1.5}
+.field-row{display:grid;gap:12px}
+.field-row-2{grid-template-columns:1fr 1fr}
+.field-row-3{grid-template-columns:2fr 1fr 1fr}
+
+.card-block{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+.card-block:last-child{margin-bottom:0}
+.card-block-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--cyan);margin-bottom:12px}
+
+.stat-row{display:grid;grid-template-columns:2fr 1fr 2fr;gap:8px;align-items:end;margin-bottom:10px}
+.stat-row:last-child{margin-bottom:0}
+.stat-label{font-size:.7rem;font-weight:600;color:var(--muted);margin-bottom:5px}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:10px;font-size:.875rem;font-weight:600;z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.success{background:#064e3b;border:1px solid rgba(16,185,129,.3);color:#6ee7b7}
+#toast.error{background:#450a0a;border:1px solid rgba(239,68,68,.3);color:#fca5a5}
+
+/* LOADING */
+.loading-state{display:flex;align-items:center;justify-content:center;height:200px;color:var(--muted);gap:10px;font-size:.9rem}
+.spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--indigo);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Empty state */
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-state h3{font-size:1.1rem;margin-bottom:8px;color:var(--text)}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <h1>🏗 SUHO Visual Editor</h1>
+      <p>サイトコンテンツを視覚的に編集・管理します</p>
+    </div>
+    <div class="login-field">
+      <label>Worker URL</label>
+      <input id="inp-url" type="url" placeholder="https://suho-news-api.biz-e3c.workers.dev" />
+    </div>
+    <div class="login-field">
+      <label>管理者トークン</label>
+      <input id="inp-token" type="password" placeholder="admin token" />
+    </div>
+    <button class="login-btn" onclick="doLogin()">ログイン →</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ===== EDITOR ===== -->
+<div id="editor">
+  <!-- Top bar -->
+  <div class="topbar">
+    <span class="topbar-logo">🏗 SUHO Editor</span>
+    <div class="page-tabs">
+      <button class="page-tab active" data-page="home" onclick="switchPage('home')">🏠 ホーム</button>
+      <button class="page-tab" data-page="recruit" onclick="switchPage('recruit')">👥 採用情報</button>
+    </div>
+    <div class="topbar-actions">
+      <a class="btn-preview" id="preview-link" href="../index.html" target="_blank">👁 プレビュー</a>
+      <button class="btn-save" id="btn-save" onclick="saveContent()">💾 保存する</button>
+    </div>
+  </div>
+
+  <div class="editor-body">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">セクション</div>
+      </div>
+      <div class="section-list" id="section-list"></div>
+      <div class="sidebar-footer">
+        <button class="btn-defaults" onclick="loadDefaults()">↩ デフォルトに戻す</button>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="form-panel" id="form-panel">
+      <div class="loading-state"><div class="spinner"></div>コンテンツを読み込み中...</div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════ */
+let WORKER = '';
+let TOKEN  = '';
+let currentPage    = 'home';
+let currentSection = 'hero';
+let pageData = { home: {}, recruit: {} };
+let modified = {};  // { 'home.hero': true, ... }
+
+/* ═══════════════════════════════════════════════
+   SECTIONS CONFIG
+═══════════════════════════════════════════════ */
+const SECTIONS = {
+  home: [
+    { id:'hero',       icon:'🌟', label:'ヒーロー' },
+    { id:'aiService',  icon:'🤖', label:'AI サービス' },
+    { id:'cloud',      icon:'☁️',  label:'クラウド' },
+    { id:'managed',    icon:'🖥️', label:'運用管理' },
+    { id:'products',   icon:'🛡️', label:'製品・ソリューション' },
+    { id:'about',      icon:'🏢', label:'会社概要' },
+    { id:'contact',    icon:'✉️', label:'お問い合わせ' },
+  ],
+  recruit: [
+    { id:'hero',       icon:'✨', label:'ヒーロー' },
+    { id:'conditions', icon:'🕘', label:'勤務条件' },
+    { id:'salary',     icon:'💴', label:'給与' },
+    { id:'benefits',   icon:'🏥', label:'福利厚生' },
+    { id:'cta',        icon:'📩', label:'採用CTA' },
+  ]
+};
+
+/* ═══════════════════════════════════════════════
+   DEFAULTS
+═══════════════════════════════════════════════ */
+const DEFAULTS = {
+  home: {
+    hero: {
+      badge: 'AI & Cloud Innovation',
+      title: ['ビジネスを', '次のステージへ', '進化させる'],
+      subtitle: 'AIとクラウドの力で、あなたのビジネスに革命をもたらします。<br/>最先端のテクノロジーと深い専門知識で、未来を共に創ります。',
+      btnPrimary: 'サービスを見る', btnGhost: 'お問い合わせ',
+      stats: [
+        {number:'200', unit:'+',   label:'クライアント'},
+        {number:'15',  unit:'年',  label:'実績'},
+        {number:'99.9',unit:'%',   label:'稼働率'},
+      ]
+    },
+    aiService: {
+      tag:'01 — AI Service', title:'AIが切り拓く', titleAccent:'新しいビジネス体験',
+      desc:'最先端の生成AIから業務特化型AIまで、御社のDX推進を全面サポート。データ分析からプロセス自動化まで、AIの力で業務効率を劇的に向上させます。',
+      cards:[
+        {title:'生成AI導入支援', desc:'GPT-4、Claude、Geminiなど最新LLMを活用した業務自動化・コンテンツ生成システムを構築します。', items:['チャットボット・バーチャルアシスタント','文書生成・要約・翻訳自動化','社内ナレッジベース構築']},
+        {title:'機械学習・予測分析', desc:'膨大なビジネスデータをAIで解析し、売上予測・需要予測・異常検知など高精度な予測モデルを提供します。', items:['需要・売上予測システム','異常検知・品質管理AI','レコメンデーションエンジン']},
+        {title:'コンピュータビジョン', desc:'画像・動画認識AIで製造ライン品質検査、セキュリティ監視、小売分析など幅広い用途に対応します。', items:['製品外観検査の自動化','顔認証・人物追跡システム','医療画像診断支援']},
+      ]
+    },
+    cloud: {
+      tag:'02 — Cloud Consulting', title:'クラウドで実現する', titleAccent:'スケーラブルな未来',
+      desc:'AWS・Azure・GCPのマルチクラウド戦略から移行支援、コスト最適化まで、クラウドジャーニーの全てをサポートします。',
+      features:[
+        {title:'マルチクラウド戦略', desc:'AWS・Azure・GCPの特性を最大活用した最適なアーキテクチャ設計'},
+        {title:'クラウド移行支援', desc:'リスクゼロのオンプレミスからクラウドへのシームレスな移行'},
+        {title:'コスト最適化', desc:'クラウドコストの可視化と継続的な最適化でTCOを最大40%削減'},
+      ]
+    },
+    managed: {
+      tag:'03 — Managed Service', title:'24/7 監視・運用で', titleAccent:'安心のインフラ管理',
+      desc:'インフラの運用管理をスホに委託することで、コア事業に集中できる環境を実現。プロアクティブな監視でシステム障害を未然に防ぎます。',
+      cards:[
+        {title:'24/7 監視体制', desc:'専任チームが365日24時間体制でシステムを監視。平均検知時間2分以内でインシデントに対応します。'},
+        {title:'自動化運用', desc:'AIOpsを活用した自動スケーリング・自動修復により、人的ミスをゼロに近づけ、安定稼働を実現します。'},
+        {title:'コスト最適化', desc:'リソース使用状況を継続的に分析し、無駄なコストを削減。平均30%のクラウドコスト削減を実現します。'},
+        {title:'セキュリティ対策', desc:'SOC（セキュリティオペレーションセンター）との連携により、サイバー脅威をリアルタイムで検知・遮断します。'},
+      ]
+    },
+    products: {
+      tag:'04 — Security & Products', title:'セキュリティと', titleAccent:'プロダクト＆ソリューション',
+      desc:'ゼロトラストセキュリティから業界特化プロダクトまで、スホが独自開発したソリューションとパートナー製品であらゆる課題に対応します。'
+    },
+    about: {
+      tag:'05 — About', title:'テクノロジーで', titleAccent:'社会を変える',
+      lead:'株式会社スホは、AIとクラウドを核に、日本のデジタル変革をリードするテクノロジーカンパニーです。',
+      body:'2009年の創業以来、大手製造業から医療・金融機関まで200社以上のデジタルトランスフォーメーションを支援してまいりました。',
+      stats:[
+        {number:'200', unit:'+', label:'導入企業数'},
+        {number:'15',  unit:'年', label:'業界実績'},
+        {number:'120', unit:'名', label:'専門エンジニア'},
+        {number:'98',  unit:'%', label:'顧客継続率'},
+      ]
+    },
+    contact: {
+      tag:'Contact', title:'さあ、始めましょう',
+      desc:'ビジネスのデジタル変革について、まずはお気軽にご相談ください。',
+      email:'info@suhojapan.com', phone:'03-0000-0000'
+    }
+  },
+  recruit: {
+    hero: {
+      tag:'採用情報 — Careers', title:'社員の更なる', titleAccent:'成長のために支援します。',
+      subtitle:'株式会社スホは「顧客サービスに必要な高品質のサービスを提供する」という意志を共にするITサービス専門会社です。共に成長できる仲間を募集しています。',
+      stats:[
+        {number:'120', unit:'日+',   label:'年間休日'},
+        {number:'23',  unit:'万円+', label:'試用期間月給'},
+        {number:'15',  unit:'%',     label:'最大年間昇給率'},
+        {number:'25',  unit:'千円',  label:'交通費支給上限'},
+      ]
+    },
+    conditions: {
+      tag:'勤務条件', title:'働く環境・', titleAccent:'待遇について',
+      desc:'スホでは社員の成長と働きやすさを最優先に考えた職場環境を整えています。',
+      cards:[
+        {icon:'🕘', title:'勤務時間', desc:'平日 09時30分〜18時30分（実働8時間）'},
+        {icon:'📅', title:'休日・休暇', desc:'年間休日120日以上 / 完全週休2日制（土・日・祝日）/ 年末年始 / 夏期・冬期休暇 / 有給休暇（入社6ヵ月後10日付与）/ 慶弔休暇'},
+        {icon:'📈', title:'昇給・賞与', desc:'昇給：年1回 / 業績賞与（インセンティブ）/ 毎年3〜15%昇給 / 指定資格取得時 年12万円昇給'},
+      ]
+    },
+    salary: {
+      tag:'給与', title:'給与・', titleAccent:'報酬について',
+      desc:'成長に応じた公平な報酬体系で、皆さんの貢献にしっかり応えます。',
+      items:[
+        {icon:'💴', title:'月給支給',         desc:'年俸額の12分の1を毎月支給'},
+        {icon:'🔰', title:'試用期間（1〜6ヶ月）', desc:'試用期間中：月給23万円以上 / 試用期間終了後：3〜5%昇給'},
+        {icon:'📈', title:'毎年の昇給',         desc:'年3〜15%昇給 / 昇給年1回 / 業績賞与あり'},
+        {icon:'🏅', title:'資格取得支援',       desc:'会社指定資格取得で年12万円昇給'},
+        {icon:'🚌', title:'交通費',             desc:'別途支給（上限25,000円）'},
+      ]
+    },
+    benefits: {
+      tag:'福利厚生', title:'充実した', titleAccent:'福利厚生・休暇制度',
+      items:[
+        {icon:'🏥', title:'雇用保険',        desc:'各種保険完備（雇用保険・労災保険・健康保険・厚生年金）'},
+        {icon:'🩺', title:'定期健康診断',    desc:'年1回の定期健康診断を実施。社員の健康を会社全体でサポートします。'},
+        {icon:'📅', title:'年間休日120日以上', desc:'完全週休2日制（土・日・祝日）。ワークライフバランスを大切にします。'},
+        {icon:'🎌', title:'年末年始休暇',    desc:'年末年始の連続休暇を取得できます。'},
+        {icon:'☀️', title:'夏期・冬期休暇',  desc:'夏期休暇および冬期休暇を設けています。'},
+        {icon:'🌿', title:'有給休暇',        desc:'入社6ヵ月後に10日間付与。入社後も計画的に取得できます。'},
+        {icon:'💐', title:'慶弔休暇',        desc:'慶弔休暇など、人生の大切な節目にしっかり休める制度があります。'},
+        {icon:'🚌', title:'交通費支給',      desc:'交通費を別途支給（上限25,000円）。通勤コストをサポートします。'},
+      ]
+    },
+    cta: {
+      title:'採用に関するお問い合わせは', titleAccent:'こちらからどうぞ',
+      desc:'採用に関するご不明な点・ご質問などがございましたら、お気軽にお問い合わせください。',
+      btnText:'お問い合わせ'
+    }
+  }
+};
+
+/* ═══════════════════════════════════════════════
+   LOGIN
+═══════════════════════════════════════════════ */
+function doLogin() {
+  const url   = document.getElementById('inp-url').value.trim()
+             || 'https://suho-news-api.biz-e3c.workers.dev';
+  const token = document.getElementById('inp-token').value.trim();
+  if (!token) { showLoginError('管理者トークンを入力してください'); return; }
+  WORKER = url;
+  TOKEN  = token;
+  localStorage.setItem('suho_worker_url', WORKER);
+  localStorage.setItem('suho_admin_token', TOKEN);
+  startEditor();
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+/* ═══════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  const savedUrl   = localStorage.getItem('suho_worker_url')   || '';
+  const savedToken = localStorage.getItem('suho_admin_token')  || '';
+  if (savedUrl)   document.getElementById('inp-url').value   = savedUrl;
+  if (savedToken) document.getElementById('inp-token').value = savedToken;
+  if (savedUrl && savedToken) { WORKER = savedUrl; TOKEN = savedToken; startEditor(); }
+});
+
+async function startEditor() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('editor').style.display = 'flex';
+  renderSidebar();
+  await loadContent();
+  renderForm();
+}
+
+/* ═══════════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════════ */
+function renderSidebar() {
+  const list = document.getElementById('section-list');
+  list.innerHTML = SECTIONS[currentPage].map(s => `
+    <div class="section-item ${s.id === currentSection ? 'active' : ''} ${modified[currentPage+'.'+s.id]?'modified':''}"
+         onclick="selectSection('${s.id}')">
+      <span class="section-icon">${s.icon}</span>
+      <span class="section-label">${s.label}</span>
+      <span class="section-modified"></span>
+    </div>`).join('');
+  const pg = currentPage === 'home' ? '../index.html' : '../recruit.html';
+  document.getElementById('preview-link').href = pg;
+}
+
+function selectSection(id) {
+  currentSection = id;
+  renderSidebar();
+  renderForm();
+}
+
+/* ═══════════════════════════════════════════════
+   LOAD CONTENT FROM KV
+═══════════════════════════════════════════════ */
+async function loadContent() {
+  try {
+    const [homeRes, recruitRes] = await Promise.all([
+      fetch(`${WORKER}/content/home`,    {cache:'no-store'}),
+      fetch(`${WORKER}/content/recruit`, {cache:'no-store'}),
+    ]);
+    const homeData    = homeRes.ok    ? await homeRes.json()    : {};
+    const recruitData = recruitRes.ok ? await recruitRes.json() : {};
+    // Merge with defaults
+    pageData.home    = deepMerge(JSON.parse(JSON.stringify(DEFAULTS.home)),    homeData);
+    pageData.recruit = deepMerge(JSON.parse(JSON.stringify(DEFAULTS.recruit)), recruitData);
+  } catch(e) {
+    pageData.home    = JSON.parse(JSON.stringify(DEFAULTS.home));
+    pageData.recruit = JSON.parse(JSON.stringify(DEFAULTS.recruit));
+  }
+}
+
+function deepMerge(target, source) {
+  if (!source || typeof source !== 'object') return target;
+  for (const key of Object.keys(source)) {
+    if (Array.isArray(source[key])) {
+      target[key] = source[key];
+    } else if (source[key] && typeof source[key] === 'object') {
+      if (!target[key]) target[key] = {};
+      deepMerge(target[key], source[key]);
+    } else if (source[key] !== undefined) {
+      target[key] = source[key];
+    }
+  }
+  return target;
+}
+
+function loadDefaults() {
+  if (!confirm('このセクションをデフォルトに戻しますか？')) return;
+  const def = DEFAULTS[currentPage][currentSection];
+  if (def) {
+    pageData[currentPage][currentSection] = JSON.parse(JSON.stringify(def));
+    renderForm();
+    markModified();
+    showToast('デフォルトに戻しました', 'success');
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   SAVE
+═══════════════════════════════════════════════ */
+async function saveContent() {
+  // Collect current form before saving
+  collectCurrentForm();
+
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true; btn.textContent = '保存中...';
+  try {
+    await Promise.all([
+      fetch(`${WORKER}/content/home`, {
+        method:'PUT',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+        body: JSON.stringify(pageData.home)
+      }),
+      fetch(`${WORKER}/content/recruit`, {
+        method:'PUT',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+TOKEN},
+        body: JSON.stringify(pageData.recruit)
+      }),
+    ]);
+    modified = {};
+    renderSidebar();
+    showToast('✅ 保存しました！サイトに反映されました', 'success');
+  } catch(e) {
+    showToast('❌ 保存に失敗しました: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '💾 保存する';
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   FORM RENDERING
+═══════════════════════════════════════════════ */
+function renderForm() {
+  const panel = document.getElementById('form-panel');
+  const data  = pageData[currentPage]?.[currentSection] || {};
+  const sec   = SECTIONS[currentPage].find(s => s.id === currentSection);
+  panel.innerHTML = `<div class="section-editor">
+    <div class="section-editor-header">
+      <div class="section-editor-title"><span class="icon">${sec.icon}</span>${sec.label}</div>
+      <div class="section-editor-desc">このセクションのテキストを編集してください。変更後「保存する」をクリックしてください。</div>
+    </div>
+    ${buildForm(currentPage, currentSection, data)}
+  </div>`;
+
+  // Auto-save on input
+  panel.querySelectorAll('input,textarea').forEach(el => {
+    el.addEventListener('input', () => markModified());
+  });
+}
+
+function markModified() {
+  const key = currentPage + '.' + currentSection;
+  modified[key] = true;
+  renderSidebar();
+}
+
+function collectCurrentForm() {
+  const panel = document.getElementById('form-panel');
+  const data  = {};
+  panel.querySelectorAll('[data-path]').forEach(el => {
+    const path  = el.dataset.path.split('.');
+    const value = el.value;
+    let obj = data;
+    for (let i = 0; i < path.length - 1; i++) {
+      const k = path[i];
+      if (!isNaN(k)) { /* array handled in parent */ }
+      if (!obj[k]) obj[k] = isNaN(path[i+1]) ? {} : [];
+      obj = obj[k];
+    }
+    const last = path[path.length - 1];
+    if (!isNaN(last)) obj[parseInt(last)] = value;
+    else obj[last] = value;
+  });
+  if (!pageData[currentPage]) pageData[currentPage] = {};
+  pageData[currentPage][currentSection] = deepMerge(
+    JSON.parse(JSON.stringify(DEFAULTS[currentPage][currentSection] || {})),
+    data
+  );
+}
+
+function v(data, ...keys) {
+  let o = data;
+  for (const k of keys) { if (o == null) return ''; o = o[k]; }
+  return o ?? '';
+}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function input(label, path, val, placeholder='') {
+  return `<div class="field-group">
+    <label>${label}</label>
+    <input data-path="${path}" value="${esc(val)}" placeholder="${esc(placeholder)}"/>
+  </div>`;
+}
+function textarea(label, path, val, placeholder='') {
+  return `<div class="field-group">
+    <label>${label}</label>
+    <textarea data-path="${path}" placeholder="${esc(placeholder)}">${esc(val)}</textarea>
+  </div>`;
+}
+function card(title, content) {
+  return `<div class="field-card"><div class="field-card-title">${title}</div>${content}</div>`;
+}
+function cardBlock(title, content) {
+  return `<div class="card-block"><div class="card-block-title">${title}</div>${content}</div>`;
+}
+function statRow(prefix, stat, i) {
+  return `<div class="stat-row">
+    <div><div class="stat-label">数値</div><input data-path="${prefix}.${i}.number" value="${esc(stat?.number||'')}" placeholder="200"/></div>
+    <div><div class="stat-label">単位</div><input data-path="${prefix}.${i}.unit" value="${esc(stat?.unit||'')}" placeholder="+"/></div>
+    <div><div class="stat-label">ラベル</div><input data-path="${prefix}.${i}.label" value="${esc(stat?.label||'')}" placeholder="クライアント"/></div>
+  </div>`;
+}
+
+/* ─── Form builders ─── */
+function buildForm(page, section, data) {
+  if (page === 'home') {
+    switch(section) {
+      case 'hero':       return formHomeHero(data);
+      case 'aiService':  return formAiService(data);
+      case 'cloud':      return formCloud(data);
+      case 'managed':    return formManaged(data);
+      case 'products':   return formProducts(data);
+      case 'about':      return formAbout(data);
+      case 'contact':    return formContact(data);
+    }
+  }
+  if (page === 'recruit') {
+    switch(section) {
+      case 'hero':       return formRecruitHero(data);
+      case 'conditions': return formConditions(data);
+      case 'salary':     return formSalary(data);
+      case 'benefits':   return formBenefits(data);
+      case 'cta':        return formCta(data);
+    }
+  }
+  return '<p style="color:var(--muted)">このセクションは編集できません</p>';
+}
+
+/* HOME HERO */
+function formHomeHero(d) {
+  const stats = d.stats || [{},{},{}];
+  return card('🏷 バッジテキスト',
+    input('バッジ', 'badge', v(d,'badge'), 'AI & Cloud Innovation')
+  ) + card('📝 メインタイトル', `
+    ${input('1行目', 'title.0', v(d,'title',0), 'ビジネスを')}
+    ${input('2行目（グラデーション）', 'title.1', v(d,'title',1), '次のステージへ')}
+    ${input('3行目', 'title.2', v(d,'title',2), '進化させる')}
+  `) + card('💬 サブテキスト',
+    textarea('サブテキスト（HTMLタグ使用可）', 'subtitle', v(d,'subtitle'))
+  ) + card('🔘 ボタン', `
+    <div class="field-row field-row-2">
+      ${input('プライマリボタン', 'btnPrimary', v(d,'btnPrimary'), 'サービスを見る')}
+      ${input('セカンダリボタン', 'btnGhost', v(d,'btnGhost'), 'お問い合わせ')}
+    </div>
+  `) + card('📊 統計', `
+    ${statRow('stats', stats[0], 0)}
+    ${statRow('stats', stats[1], 1)}
+    ${statRow('stats', stats[2], 2)}
+  `);
+}
+
+/* HOME AI SERVICE */
+function formAiService(d) {
+  const cards = d.cards || [{items:[]},{items:[]},{items:[]}];
+  return card('🏷 セクションヘッダー', `
+    ${input('タグ', 'tag', v(d,'tag'), '01 — AI Service')}
+    <div class="field-row field-row-2">
+      ${input('見出し', 'title', v(d,'title'), 'AIが切り拓く')}
+      ${input('見出し（グラデーション）', 'titleAccent', v(d,'titleAccent'), '新しいビジネス体験')}
+    </div>
+    ${textarea('説明文', 'desc', v(d,'desc'))}
+  `) + card('🃏 カード', [0,1,2].map(i => {
+    const c = cards[i] || {items:[]};
+    const items = c.items || [];
+    return cardBlock(`カード ${i+1}`, `
+      ${input('タイトル', `cards.${i}.title`, v(c,'title'), 'サービス名')}
+      ${textarea('説明', `cards.${i}.desc`, v(c,'desc'))}
+      ${input('リスト項目 1', `cards.${i}.items.0`, items[0]||'', '項目1')}
+      ${input('リスト項目 2', `cards.${i}.items.1`, items[1]||'', '項目2')}
+      ${input('リスト項目 3', `cards.${i}.items.2`, items[2]||'', '項目3')}
+    `);
+  }).join(''));
+}
+
+/* HOME CLOUD */
+function formCloud(d) {
+  const features = d.features || [{},{},{}];
+  return card('🏷 セクションヘッダー', `
+    ${input('タグ', 'tag', v(d,'tag'))}
+    <div class="field-row field-row-2">
+      ${input('見出し', 'title', v(d,'title'))}
+      ${input('見出し（グラデーション）', 'titleAccent', v(d,'titleAccent'))}
+    </div>
+    ${textarea('説明文', 'desc', v(d,'desc'))}
+  `) + card('✅ 特徴リスト', features.map((f,i) => cardBlock(`特徴 ${i+1}`, `
+    ${input('タイトル', `features.${i}.title`, v(f,'title'))}
+    ${textarea('説明', `features.${i}.desc`, v(f,'desc'))}
+  `)).join(''));
+}
+
+/* HOME MANAGED */
+function formManaged(d) {
+  const cards = d.cards || [{},{},{},{}];
+  return card('🏷 セクションヘッダー', `
+    ${input('タグ', 'tag', v(d,'tag'))}
+    <div class="field-row field-row-2">
+      ${input('見出し', 'title', v(d,'title'))}
+      ${input('見出し（グラデーション）', 'titleAccent', v(d,'titleAccent'))}
+    </div>
+    ${textarea('説明文', 'desc', v(d,'desc'))}
+  `) + card('📋 カード', cards.map((c,i) => cardBlock(`カード ${i+1}`, `
+    ${input('タイトル', `cards.${i}.title`, v(c,'title'))}
+    ${textarea('説明', `cards.${i}.desc`, v(c,'desc'))}
+  `)).join(''));
+}
+
+/* HOME PRODUCTS */
+function formProducts(d) {
+  return card('🏷 セクションヘッダー', `
+    ${input('タグ', 'tag', v(d,'tag'))}
+    <div class="field-row field-row-2">
+      ${input('見出し', 'title', v(d,'title'))}
+      ${input('見出し（グラデーション）', 'titleAccent', v(d,'titleAccent'))}
+    </div>
+    ${textarea('説明文', 'desc', v(d,'desc'))}
+  `);
+}
+
+/* HOME ABOUT */
+function formAbout(d) {
+  const stats = d.stats || [{},{},{},{}];
+  return card('🏷 セクションヘッダー', `
+    ${input('タグ', 'tag', v(d,'tag'))}
+    <div class="field-row field-row-2">
+      ${input('見出し', 'title', v(d,'title'))}
+      ${input('見出し（グラデーション）', 'titleAccent', v(d,'titleAccent'))}
+    </div>
+  `) + card('📖 テキスト', `
+    ${textarea('リードテキスト', 'lead', v(d,'lead'))}
+    ${textarea('本文', 'body', v(d,'body'))}
+  `) + card('📊 統計', stats.map((s,i) => statRow('stats', s, i)).join(''));
+}
+
+/* HOME CONTACT */
+function formContact(d) {
+  return card('🏷 ヘッダー', `
+    ${input('タグ', 'tag', v(d,'tag'))}
+    ${input('見出し', 'title', v(d,'title'))}
+    ${textarea('サブテキスト', 'desc', v(d,'desc'))}
+  `) + card('📬 連絡先', `
+    <div class="field-row field-row-2">
+      ${input('メールアドレス', 'email', v(d,'email'), 'info@example.com')}
+      ${input('電話番号', 'phone', v(d,'phone'), '03-0000-0000')}
+    </div>
+  `);
+}
+
+/* RECRUIT HERO */
+function formRecruitHero(d) {
+  const stats = d.stats || [{},{},{},{}];
+  return card('🏷 ヘッダー', `
+    ${input('タグ', 'tag', v(d,'tag'))}
+    <div class="field-row field-row-2">
+      ${input('タイトル（通常）', 'title', v(d,'title'), '社員の更なる')}
+      ${input('タイトル（グラデーション）', 'titleAccent', v(d,'titleAccent'), '成長のために支援します。')}
+    </div>
+    ${textarea('サブテキスト', 'subtitle', v(d,'subtitle'))}
+  `) + card('📊 統計', stats.map((s,i) => statRow('stats', s, i)).join(''));
+}
+
+/* RECRUIT CONDITIONS */
+function formConditions(d) {
+  const cards = d.cards || [{},{},{}];
+  return card('🏷 ヘッダー', `
+    ${input('タグ', 'tag', v(d,'tag'))}
+    <div class="field-row field-row-2">
+      ${input('見出し', 'title', v(d,'title'))}
+      ${input('見出し（グラデーション）', 'titleAccent', v(d,'titleAccent'))}
+    </div>
+    ${textarea('説明文', 'desc', v(d,'desc'))}
+  `) + card('🃏 カード', cards.map((c,i) => cardBlock(`カード ${i+1}`, `
+    <div class="field-row field-row-2">
+      ${input('アイコン', `cards.${i}.icon`, v(c,'icon'), '🕘')}
+      ${input('タイトル', `cards.${i}.title`, v(c,'title'))}
+    </div>
+    ${textarea('説明', `cards.${i}.desc`, v(c,'desc'))}
+  `)).join(''));
+}
+
+/* RECRUIT SALARY */
+function formSalary(d) {
+  const items = d.items || [{},{},{},{},{}];
+  return card('🏷 ヘッダー', `
+    ${input('タグ', 'tag', v(d,'tag'))}
+    <div class="field-row field-row-2">
+      ${input('見出し', 'title', v(d,'title'))}
+      ${input('見出し（グラデーション）', 'titleAccent', v(d,'titleAccent'))}
+    </div>
+    ${textarea('説明文', 'desc', v(d,'desc'))}
+  `) + card('💴 給与項目', items.map((it,i) => cardBlock(`項目 ${i+1}`, `
+    <div class="field-row field-row-2">
+      ${input('アイコン', `items.${i}.icon`, v(it,'icon'), '💴')}
+      ${input('タイトル', `items.${i}.title`, v(it,'title'))}
+    </div>
+    ${textarea('説明', `items.${i}.desc`, v(it,'desc'))}
+  `)).join(''));
+}
+
+/* RECRUIT BENEFITS */
+function formBenefits(d) {
+  const items = d.items || Array(8).fill({});
+  return card('🏷 ヘッダー', `
+    ${input('タグ', 'tag', v(d,'tag'))}
+    <div class="field-row field-row-2">
+      ${input('見出し', 'title', v(d,'title'))}
+      ${input('見出し（グラデーション）', 'titleAccent', v(d,'titleAccent'))}
+    </div>
+  `) + card('🎁 福利厚生項目', items.map((it,i) => cardBlock(`項目 ${i+1}`, `
+    <div class="field-row field-row-2">
+      ${input('アイコン', `items.${i}.icon`, v(it,'icon'), '🏥')}
+      ${input('タイトル', `items.${i}.title`, v(it,'title'))}
+    </div>
+    ${textarea('説明', `items.${i}.desc`, v(it,'desc'))}
+  `)).join(''));
+}
+
+/* RECRUIT CTA */
+function formCta(d) {
+  return card('📢 CTAセクション', `
+    <div class="field-row field-row-2">
+      ${input('タイトル（通常）', 'title', v(d,'title'))}
+      ${input('タイトル（グラデーション）', 'titleAccent', v(d,'titleAccent'))}
+    </div>
+    ${textarea('説明文', 'desc', v(d,'desc'))}
+    ${input('ボタンテキスト', 'btnText', v(d,'btnText'), 'お問い合わせ')}
+  `);
+}
+
+/* ═══════════════════════════════════════════════
+   PAGE SWITCH
+═══════════════════════════════════════════════ */
+function switchPage(page) {
+  collectCurrentForm();
+  currentPage = page;
+  currentSection = SECTIONS[page][0].id;
+  document.querySelectorAll('.page-tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.page === page));
+  const pg = page === 'home' ? '../index.html' : '../recruit.html';
+  document.getElementById('preview-link').href = pg;
+  renderSidebar();
+  renderForm();
+}
+
+/* ═══════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════ */
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `show ${type}`;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.className = ''; }, 3500);
+}
+</script>
+</body>
+</html>
