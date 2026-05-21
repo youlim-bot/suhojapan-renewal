@@ -111,7 +111,8 @@ body {
 #loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
 
 .loader-inner { display: flex; flex-direction: column; align-items: center; gap: 24px; }
-.loader-logo { width: 72px; height: 72px; object-fit: contain; aspect-ratio: 1 / 1; animation: spin 2s linear infinite; }
+.loader-logo { height: 44px; width: auto; object-fit: contain; animation: logoPulse 1.2s ease-in-out infinite; }
+@keyframes logoPulse { 0%,100%{ opacity:1; transform:scale(1); } 50%{ opacity:.6; transform:scale(.94); } }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .loader-bar {
@@ -197,7 +198,8 @@ body:has(button:hover) #cursor { width: 20px; height: 20px; background: var(--cy
   transform: rotate(15deg) scale(1.08);
 }
 .nav-logo em { color: var(--indigo); font-style: normal; font-size: .8em; margin-left: 2px; }
-.nav-logo-text { font-size: 34px; font-weight: 400; line-height: 1; letter-spacing: -.02em; color: #fff; -webkit-text-fill-color: #fff; font-style: italic; transform: skewX(-8deg); display: inline-block; }
+.nav-logo-full { height: 34px; width: auto; object-fit: contain; flex-shrink: 0; transition: opacity .3s; }
+.nav-logo:hover .nav-logo-full { opacity: .85; }
 .footer-logo-text { color: #fff; font-weight: 700; }
 .footer-logo-text em { color: var(--indigo); font-style: normal; }
 [data-theme="light"] .footer-logo-text { color: var(--text); }
